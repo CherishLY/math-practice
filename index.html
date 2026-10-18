@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数学练习</title>
+  <style>
+[hidden] { display: none !important; }
+.exercise-tabs { display: flex; background: white; border-bottom: 1px solid var(--line); padding: 0 20px; gap: 24px; }
+.exercise-tabs button { min-height: 60px; padding: 12px 6px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--muted); font: inherit; font-weight: 800; cursor: pointer; }
+.exercise-tabs button[aria-selected="true"] { border-bottom-color: var(--blue); color: var(--blue); }
+.exercise-tabs button:focus-visible { outline: 2px solid var(--blue); outline-offset: -4px; }
+.cubes-page { padding: 28px; }
+.cubes-heading h1 { margin: 0 0 10px; font-size: 25px; }
+.cubes-heading p, .cube-reference { color: var(--muted); line-height: 1.6; }
+.cube-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 22px; }
+.cube-shapes { display: flex; gap: 8px; }
+.cube-shapes button { padding: 8px 18px; }
+.cube-score { display: flex; gap: 10px; flex-wrap: wrap; }
+#cubeRight { color: var(--green); } #cubeWrong { color: var(--red); }
+.cube-scene { width: 100%; aspect-ratio: 760 / 420; background: #f1f7fa; margin-top: 18px; border-bottom: 1px solid #cedee5; }
+.cube-scene svg { display: block; width: 100%; height: 100%; }
+.cube-reference { font-size: 14px; text-align: center; margin: 10px 0 24px; }
+.cube-answer-form { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; font-size: 18px; }
+.cube-answer-form input { width: 80px; height: 52px; border: 2px solid #8aadc9; border-radius: 6px; text-align: center; font: inherit; font-size: 26px; background: white; color: var(--ink); }
+.cube-answer-form input:focus { outline: 3px solid #d0e3fa; border-color: var(--blue); }
+.cube-feedback { min-height: 30px; text-align: center; font-size: 18px; font-weight: 700; }
+.cube-feedback.good { color: var(--green); } .cube-feedback.bad { color: var(--red); }
+.cube-explanation { padding: 18px 0; border-top: 1px solid var(--line); margin-bottom: 20px; text-align: center; }
+.cube-explanation h2 { font-size: 18px; margin: 0 0 14px; }
+.cube-explanation p { line-height: 1.6; margin: 8px 0; }
+.cube-layer-plans { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; }
+.cube-layer-plan { display: grid; gap: 4px; justify-content: center; }
+.cube-layer-plan i { width: 18px; height: 18px; background: #60bfc1; border: 1px solid #25838c; }
+.cube-layer { min-width: 90px; }
+@media (max-width: 680px) {
+  .cubes-page { padding: 20px 14px; }
+  .cubes-heading h1 { font-size: 22px; }
+  .exercise-tabs { gap: 20px; padding: 0 14px; }
+  .cube-scene { aspect-ratio: 1.5; }
+  .cube-answer-form { gap: 8px; font-size: 16px; }
+}
+
+.exercise-tabs { gap: 20px; flex-wrap: wrap; }
+.comparison-page { padding: 28px; }
+.comparison-heading h1 { font-size: 25px; margin: 0 0 10px; }
+.comparison-heading p { color: var(--muted); margin-bottom: 24px; }
+.comparison-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.comparison-modes button { padding: 10px 6px; }
+.comparison-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin: 28px 0; font-size: 16px; }
+#comparisonRight { color: var(--green); }
+#comparisonWrong { color: var(--red); }
+.comparison-question { display: grid; grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1fr); align-items: center; gap: 20px; min-height: 180px; font-size: 44px; font-weight: 800; text-align: center; background: #f0f7fa; padding: 24px 12px; }
+.comparison-question > span { min-width: 0; }
+.comparison-circle { display: grid; place-items: center; width: 76px; height: 76px; border: 3px solid #6d9ba9; border-radius: 50%; background: white; font-size: 46px; }
+.comparison-circle.good { color: var(--green); border-color: var(--green); }
+.comparison-circle.bad { color: var(--red); border-color: var(--red); }
+.comparison-symbols { display: flex; justify-content: center; gap: 20px; margin-top: 30px; }
+.comparison-symbols button { display: grid; justify-items: center; align-content: center; gap: 4px; width: 100px; height: 100px; border: 2px solid #b8cedd; border-radius: 8px; background: white; color: #2457a6; cursor: pointer; font: inherit; }
+.comparison-symbols button:nth-child(2) { color: var(--green); }
+.comparison-symbols button:nth-child(3) { color: #a46e15; }
+.comparison-symbols strong { font-size: 44px; line-height: 1; }
+.comparison-symbols button:hover:not(:disabled), .comparison-symbols button:focus-visible { outline: 3px solid #bcd9f8; outline-offset: 3px; }
+.comparison-symbols button:disabled { cursor: default; }
+.comparison-symbols button.selected { background: #e9f4fb; border-color: currentColor; }
+.comparison-feedback { min-height: 28px; margin: 22px 0 6px; font-size: 20px; font-weight: 700; text-align: center; }
+.comparison-feedback.good { color: var(--green); }
+.comparison-feedback.bad { color: var(--red); }
+.comparison-explanation { min-height: 50px; text-align: center; color: var(--muted); line-height: 1.6; margin: 0 0 16px; }
+@media (max-width: 680px) {
+  .exercise-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 0 8px; }
+  .exercise-tabs button { font-size: 14px; padding: 10px 0; }
+  .comparison-page { padding: 20px 14px; }
+  .comparison-heading h1 { font-size: 22px; }
+  .comparison-question { grid-template-columns: minmax(0, 1fr) 50px minmax(0, 1fr); gap: 8px; font-size: 25px; min-height: 150px; padding: 20px 8px; }
+  .comparison-circle { width: 50px; height: 50px; font-size: 32px; }
+  .comparison-symbols { gap: 12px; }
+  .comparison-symbols button { width: 80px; height: 88px; }
+  .comparison-stats { gap: 16px; }
+}
+  </style>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1d2433;
+      --muted: #687386;
+      --line: #d8e0ea;
+      --paper: #fffdf8;
+      --bg: #f4f7fb;
+      --blue: #2f6fed;
+      --blue-dark: #2356bc;
+      --green: #23845a;
+      --red: #c63e47;
+      --yellow: #f3c64e;
+      --shadow: 0 18px 45px rgba(47, 69, 103, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 12%, rgba(243, 198, 78, 0.23), transparent 32%),
+        radial-gradient(circle at 80% 4%, rgba(47, 111, 237, 0.16), transparent 34%),
+        linear-gradient(135deg, #f8fbff 0%, var(--bg) 100%);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    main {
+      width: min(980px, 100%);
+      background: rgba(255, 253, 248, 0.92);
+      border: 1px solid rgba(216, 224, 234, 0.9);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0;
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .stat {
+      position: relative;
+      padding: 18px 16px 20px;
+      text-align: center;
+      overflow: hidden;
+      border-right: 1px solid rgba(255, 255, 255, 0.82);
+    }
+
+    .stat:last-child {
+      border-right: 0;
+    }
+
+    .stat::before {
+      content: attr(data-icon);
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      margin-bottom: 6px;
+      font-size: 18px;
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 8px 18px rgba(61, 80, 112, 0.12);
+    }
+
+    .stat.time {
+      background: linear-gradient(135deg, #eaf4ff 0%, #dbeafe 100%);
+      color: #2457a6;
+    }
+
+    .stat.right {
+      background: linear-gradient(135deg, #e8f8ee 0%, #c9f0dd 100%);
+      color: var(--green);
+    }
+
+    .stat.wrong {
+      background: linear-gradient(135deg, #fff0f1 0%, #ffd8dc 100%);
+      color: var(--red);
+    }
+
+    .stat.total {
+      background: linear-gradient(135deg, #fff7d7 0%, #ffe8a3 100%);
+      color: #9b6817;
+    }
+
+    .stat span {
+      display: block;
+      color: currentColor;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 5px;
+      opacity: 0.82;
+    }
+
+    .stat strong {
+      font-size: clamp(22px, 4vw, 34px);
+      line-height: 1;
+      color: currentColor;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: minmax(190px, 250px) minmax(0, 1fr);
+      gap: clamp(18px, 4vw, 34px);
+      padding: clamp(22px, 5vw, 46px);
+      align-items: start;
+      text-align: center;
+    }
+
+    .practice-area {
+      min-width: 0;
+    }
+
+    .formula {
+      min-height: 132px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.22em;
+      font-weight: 800;
+      font-size: clamp(42px, 8vw, 92px);
+      line-height: 1;
+      letter-spacing: 0;
+      margin: 0 0 24px;
+    }
+
+    .answer-slot {
+      min-width: 1.1em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 8px solid var(--yellow);
+      color: var(--blue);
+    }
+
+    input.answer-slot {
+      width: 2.2em;
+      min-width: 0;
+      padding: 6px 2px;
+      border: 2px solid #bed0e8;
+      border-bottom: 5px solid var(--yellow);
+      border-radius: 6px;
+      background: white;
+      text-align: center;
+      font: inherit;
+      line-height: 1.2;
+      appearance: none;
+    }
+    input.answer-slot:focus { outline: 3px solid #d0e3fa; outline-offset: 2px; }
+    input.answer-slot::placeholder { color: #687386; opacity: 1; }
+    .answer-control { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .answer-form { margin-bottom: 20px; }
+    .answer-form .formula { margin-bottom: 14px; }
+    button, input { touch-action: manipulation; }
+    button:disabled { opacity: 0.6; cursor: default; }
+
+    .answer-slot.empty {
+      color: var(--ink);
+      border-bottom-color: transparent;
+    }
+
+    .answer-slot.good {
+      color: var(--green);
+      border-bottom-color: var(--green);
+    }
+
+    .answer-slot.bad {
+      color: var(--red);
+      border-bottom-color: var(--red);
+    }
+
+    .message {
+      min-height: 36px;
+      color: var(--muted);
+      font-size: clamp(17px, 3vw, 22px);
+      line-height: 1.4;
+      margin: 0 auto 22px;
+    }
+
+    .message.good {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .message.bad {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .memory-card {
+      position: sticky;
+      top: 16px;
+      background: linear-gradient(135deg, #fff8df 0%, #fff0f3 48%, #eaf7ff 100%);
+      border: 1px solid rgba(243, 198, 78, 0.66);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 0;
+      box-shadow: 0 10px 24px rgba(84, 97, 128, 0.1);
+    }
+
+    .memory-title {
+      margin: 0 0 12px;
+      color: #9b6817;
+      font-size: clamp(17px, 3vw, 22px);
+      font-weight: 900;
+    }
+
+    .memory-rhyme {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      color: #315071;
+      font-size: clamp(15px, 2.5vw, 18px);
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
+    .memory-rhyme span:nth-child(1) {
+      color: #2457a6;
+    }
+
+    .memory-rhyme span:nth-child(2) {
+      color: var(--green);
+    }
+
+    .memory-rhyme span:nth-child(3) {
+      color: #8a4ab8;
+    }
+
+    .memory-rhyme span:nth-child(4) {
+      color: var(--red);
+    }
+
+    .memory-rhyme span:nth-child(5) {
+      color: #9b6817;
+    }
+
+    .mode-panel {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 0 0 12px;
+    }
+
+    .operation-panel {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 20px;
+    }
+
+    .specialty-panel {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-bottom: 20px;
+    }
+    .specialty-panel .mode-button { padding: 10px 6px; }
+    .mode-button small { display: block; margin-top: 5px; font-size: 14px; font-weight: 500; }
+    .practice-label { margin: 14px 0 8px; text-align: left; font-size: 15px; color: var(--muted); }
+    .formula { font-size: 40px; flex-wrap: wrap; }
+    .formula > span { white-space: nowrap; }
+
+    .mode-button {
+      min-height: 48px;
+      border: 1px solid #bed0e8;
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(42, 66, 104, 0.08);
+    }
+
+    .mode-button.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #ffffff;
+    }
+
+    .mode-button:hover,
+    .mode-button:focus-visible {
+      border-color: var(--blue);
+      outline: none;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .cube-choices { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 20px 0; }
+    .cube-number { min-height: 48px; border: 1px solid #bed0e8; border-radius: 8px; background: white; color: var(--ink); font: inherit; font-size: 22px; font-weight: 800; cursor: pointer; }
+    .cube-number:focus-visible { outline: 3px solid #bcd9f8; outline-offset: 2px; }
+    .cube-number.selected { background: #e9f4fb; border-color: var(--blue); }
+
+    .choice {
+      appearance: none;
+      border: 1px solid #bed0e8;
+      background: #ffffff;
+      color: var(--ink);
+      border-radius: 8px;
+      aspect-ratio: 1;
+      min-width: 0;
+      font: inherit;
+      font-size: clamp(20px, 4vw, 30px);
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(42, 66, 104, 0.08);
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .choice:hover,
+    .choice:focus-visible {
+      transform: translateY(-2px);
+      border-color: var(--blue);
+      outline: none;
+    }
+
+    .choice:disabled {
+      cursor: default;
+    }
+
+    .choice.correct {
+      background: #eaf8f1;
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .choice.wrong {
+      background: #fff0f1;
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .action {
+      border: 0;
+      border-radius: 8px;
+      min-height: 46px;
+      padding: 0 20px;
+      background: var(--blue);
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .action.secondary {
+      background: #e8eef7;
+      color: var(--ink);
+    }
+
+    .action.finish {
+      background: #fff0f1;
+      color: var(--red);
+      border: 1px solid #f2a5ac;
+    }
+
+    .action.finish.active {
+      background: var(--red);
+      color: #ffffff;
+      border-color: var(--red);
+    }
+
+    .action:hover,
+    .action:focus-visible {
+      background: var(--blue-dark);
+      outline: none;
+    }
+
+    .action.secondary:hover,
+    .action.secondary:focus-visible {
+      background: #d9e3f1;
+    }
+
+    .action.finish:hover,
+    .action.finish:focus-visible {
+      background: #ffd8dc;
+    }
+
+    .action.finish.active:hover,
+    .action.finish.active:focus-visible {
+      background: var(--red);
+    }
+
+    .history-card {
+      margin-top: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.76);
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .history-title {
+      margin: 0;
+      padding: 12px 14px;
+      background: #f2f6fc;
+      color: #315071;
+      font-size: 16px;
+      font-weight: 900;
+      border-bottom: 1px solid var(--line);
+    }
+    .history-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: #f2f6fc; padding-right: 12px; border-bottom: 1px solid var(--line); }
+    .history-heading .history-title { border: 0; }
+    .history-clear { min-height: 44px; padding: 8px 12px; border: 0; background: transparent; color: var(--red); font: inherit; cursor: pointer; }
+    .summary-bar { display: grid; grid-template-columns: minmax(260px, 1.8fr) minmax(0, 4fr); border-bottom: 1px solid var(--line); }
+    .summary-bar.stars-only { grid-template-columns: 1fr; }
+    .summary-bar .topbar { border-bottom: 0; }
+    .summary-bar .stat { padding: 16px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .star-bar { display: flex; align-content: center; align-items: center; flex-wrap: wrap; gap: 10px; padding: 16px; background: #fff7d9; border-right: 1px solid #eed494; }
+    .star-balance { margin: 0; font-size: 18px; color: #77510c; }
+    .star-balance strong { margin: 0 5px; font-size: 28px; font-variant-numeric: tabular-nums; }
+    .star-progress { margin: 4px 0 0; font-size: 13px; color: #786747; line-height: 1.5; }
+    .star-redeem { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .star-redeem input { width: 64px; height: 44px; padding: 6px; border: 1px solid #c8ae6e; border-radius: 6px; font: inherit; font-size: 18px; background: white; text-align: center; }
+    .star-redeem { font-size: 14px; gap: 6px; }
+    .star-redeem .action { font-size: 14px; padding: 0 12px; min-height: 44px; }
+    .star-status { width: 100%; margin: 0; font-size: 14px; color: #77510c; }
+    .star-status:empty { display: none; }
+    @media (max-width: 680px) { .summary-bar { grid-template-columns: 1fr; } .star-bar { padding: 14px; justify-content: space-between; border-right: 0; border-bottom: 1px solid #eed494; } .history-heading { padding-right: 6px; } }
+
+    .history-list {
+      display: grid;
+      gap: 1px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      background: var(--line);
+    }
+
+    .history-item {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.88);
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .history-item strong {
+      color: var(--green);
+      font-size: 16px;
+    }
+
+    .history-empty {
+      margin: 0;
+      padding: 14px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .details-dialog {
+      width: min(760px, calc(100% - 24px));
+      max-height: 85vh;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+    }
+    .details-dialog::backdrop { background: rgba(29, 36, 51, 0.45); }
+    .details-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .details-header h2 { margin: 0; font-size: 20px; }
+    .details-scroll { overflow: auto; margin-top: 16px; }
+    .details-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .details-table th, .details-table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--line); }
+    .details-table th { background: #f2f6fc; }
+    .details-correct { color: var(--green); }
+    .details-wrong { color: var(--red); }
+    .history-item button { justify-self: start; }
+
+    @media (max-width: 680px) {
+      body {
+        padding: 12px;
+      }
+
+      .topbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .choices {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .cube-choices { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+      .mode-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .operation-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .formula {
+        min-height: 104px;
+      }
+
+      .history-item {
+        grid-template-columns: 1fr;
+      }
+
+      .stage {
+        grid-template-columns: 1fr;
+      }
+
+      .memory-card {
+        position: static;
+      }
+      body { padding: 8px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+      .stage { padding: 18px 12px; gap: 20px; }
+      .formula { font-size: 28px; gap: 8px; }
+      .formula > span { white-space: normal; }
+      .mode-button { font-size: 15px; padding: 8px 4px; }
+      .actions { gap: 8px; }
+      .action { padding: 0 14px; }
+      .memory-card { padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+      .memory-rhyme { gap: 2px; font-size: 15px; }
+      .memory-title { margin-bottom: 6px; font-size: 18px; }
+      .details-dialog { padding: 14px; }
+      .details-table { font-size: 14px; }
+      .details-table th, .details-table td { padding: 10px 5px; }
+    }
+  </style>
+</head>
+<body>
+  <main aria-label="数学练习">
+    <nav class="exercise-tabs" role="tablist" aria-label="练习页面">
+      <button type="button" role="tab" id="arithmeticTab" aria-controls="arithmeticPage" aria-selected="true">加减法练习</button>
+      <button type="button" role="tab" id="cubesTab" aria-controls="cubesPage" aria-selected="false" tabindex="-1">数方块</button>
+      <button type="button" role="tab" id="comparisonTab" aria-controls="comparisonPage" aria-selected="false" tabindex="-1">大小比较</button>
+    </nav>
+    <section class="summary-bar" id="summaryBar" aria-label="星星和练习统计">
+    <section class="star-bar" aria-label="星星奖励">
+      <div>
+        <p class="star-balance">我的星星 <span aria-hidden="true">⭐️</span><strong id="starBalance">0</strong>颗</p>
+        <p class="star-progress" id="starProgress">加减法再答对10题，获得1颗星星</p>
+      </div>
+      <form class="star-redeem" id="starRedeemForm" novalidate>
+        <label for="starAmount">兑换</label>
+        <input id="starAmount" type="text" inputmode="numeric" autocomplete="off" placeholder="数量" aria-label="兑换星星数量">
+        <button class="action" type="submit">扣减星星</button>
+      </form>
+      <p class="star-status" id="starStatus" role="status"></p>
+    </section>
+    <section class="topbar" id="arithmeticStats" aria-label="练习统计">
+      <div class="stat time" data-icon="⏱">
+        <span id="timerLabel">剩余时间</span>
+        <strong id="timer">10:00</strong>
+      </div>
+      <div class="stat right" data-icon="✓">
+        <span>正确</span>
+        <strong id="rightCount">0</strong>
+      </div>
+      <div class="stat wrong" data-icon="×">
+        <span>错误</span>
+        <strong id="wrongCount">0</strong>
+      </div>
+      <div class="stat total" data-icon="#">
+        <span id="totalLabel">已答题数</span>
+        <strong id="totalCount">0</strong>
+      </div>
+    </section>
+    </section>
+
+    <div id="arithmeticPage" role="tabpanel" aria-labelledby="arithmeticTab">
+    <section class="stage">
+      <section class="memory-card" aria-label="凑十法口诀">
+        <p class="memory-title">凑十法口诀</p>
+        <p class="memory-rhyme">
+          <span>一九一九好朋友</span>
+          <span>二八二八手拉手</span>
+          <span>三七三七真亲密</span>
+          <span>四六四六一起走</span>
+          <span>五五凑成一双手</span>
+        </p>
+      </section>
+      <div class="practice-area">
+        <p class="practice-label">练习方式</p>
+        <div class="mode-panel" aria-label="练习方式">
+          <button class="mode-button active" id="timedButton" type="button" aria-pressed="true">10分钟计时</button>
+          <button class="mode-button" id="hundredButton" type="button" aria-pressed="false">100题练习</button>
+        </div>
+        <p class="practice-label">数字范围</p>
+        <div class="mode-panel" aria-label="练习类型">
+          <button class="mode-button" id="tenModeButton" type="button">10以内加减法</button>
+          <button class="mode-button active" id="twentyModeButton" type="button">20以内加减法</button>
+        </div>
+        <div class="mode-panel operation-panel" aria-label="题型">
+          <button class="mode-button active" id="mixedModeButton" type="button">加减混合</button>
+          <button class="mode-button" id="chainAddButton" type="button">连加</button>
+          <button class="mode-button" id="chainSubButton" type="button">连减</button>
+        </div>
+        <p class="practice-label">专项练习</p>
+        <div class="mode-panel specialty-panel" id="specialtyPanel" aria-label="专项练习">
+          <button class="mode-button" type="button" data-operation="addFirst">找第一个加数<small>□ + 3 = 5</small></button>
+          <button class="mode-button" type="button" data-operation="addSecond">找第二个加数<small>2 + □ = 5</small></button>
+          <button class="mode-button" type="button" data-operation="addResult">求和<small>2 + 3 = □</small></button>
+          <button class="mode-button" type="button" data-operation="subFirst">找被减数<small>□ - 3 = 2</small></button>
+          <button class="mode-button" type="button" data-operation="subSecond">找减数<small>5 - □ = 2</small></button>
+          <button class="mode-button" type="button" data-operation="subResult">求差<small>5 - 3 = □</small></button>
+        </div>
+        <form class="answer-form" id="answerForm">
+        <div class="formula">
+          <span id="formulaPrefix"></span>
+          <span class="answer-control">
+            <input class="answer-slot empty" id="answerSlot" type="text" inputmode="none" maxlength="2" autocomplete="off" aria-label="方框中的答案" placeholder="□" readonly>
+          </span>
+          <span id="formulaText">8 + 5 =</span>
+        </div>
+        </form>
+        <p class="message" id="message"></p>
+        <div class="choices" id="choices" aria-label="选择答案"></div>
+        <div class="actions">
+          <button class="action" id="startButton" type="button">开始</button>
+          <button class="action" id="nextButton" type="button">换一题</button>
+          <button class="action secondary" id="resetButton" type="button">重新开始</button>
+          <button class="action finish" id="finishButton" type="button">结束</button>
+          <button class="action secondary" id="detailsButton" type="button" hidden>查看本次详情</button>
+        </div>
+        <section class="history-card" aria-label="最近10次成绩">
+          <div class="history-heading"><p class="history-title">最近10次成绩</p><button class="history-clear" id="clearHistory" type="button">清除历史记录</button></div>
+          <div id="historyList"></div>
+        </section>
+      </div>
+    </section>
+    </div>
+    <section id="cubesPage" class="cubes-page" role="tabpanel" aria-labelledby="cubesTab" hidden>
+      <header class="cubes-heading"><h1>一共有几个小方块？</h1><p>每层都铺满，下面没有空洞。被遮住的小方块也要数。</p></header>
+      <div class="cube-tools">
+        <div class="cube-shapes" role="group" aria-label="叠放类型">
+          <button class="mode-button active" type="button" data-shape="block" aria-pressed="true">整齐叠放</button>
+          <button class="mode-button" type="button" data-shape="steps" aria-pressed="false">阶梯叠放</button>
+        </div>
+        <p class="cube-score">答对 <strong id="cubeRight">0</strong> 题 <span>·</span> 答错 <strong id="cubeWrong">0</strong> 题</p>
+      </div>
+      <div class="cube-scene" id="cubeScene"></div>
+      <p class="cube-reference">右侧是一个小方块作参照，不计入左侧的总数。</p>
+      <form class="cube-answer-form" id="cubeForm">
+        <label for="cubeAnswer">左侧共有</label>
+        <span class="answer-control">
+          <input id="cubeAnswer" type="text" inputmode="none" maxlength="2" autocomplete="off" aria-label="方块总数" readonly>
+        </span>
+        <span>个小方块</span>
+      </form>
+      <div class="cube-choices" id="cubeChoices" aria-label="选择方块总数"></div>
+      <p id="cubeFeedback" class="cube-feedback" role="status"></p>
+      <section id="cubeExplanation" class="cube-explanation" hidden aria-label="分层核对"></section>
+      <div class="actions"><button class="action secondary" type="button" id="cubeNext">下一题</button><button class="action secondary" type="button" id="cubeReset">重新开始</button></div>
+    </section>
+    <section id="comparisonPage" class="comparison-page" role="tabpanel" aria-labelledby="comparisonTab" hidden>
+      <header class="comparison-heading"><h1>比一比，填符号</h1><p>20以内的大小比较</p></header>
+      <div class="comparison-modes" role="group" aria-label="比较题型">
+        <button class="mode-button active" type="button" data-comparison-mode="numbers" aria-pressed="true">数字比数字</button>
+        <button class="mode-button" type="button" data-comparison-mode="expression" aria-pressed="false">算式比数字</button>
+        <button class="mode-button" type="button" data-comparison-mode="both" aria-pressed="false">算式比算式</button>
+      </div>
+      <div class="comparison-stats" aria-label="比较练习统计">
+        <span>答对 <strong id="comparisonRight">0</strong> 题</span>
+        <span>答错 <strong id="comparisonWrong">0</strong> 题</span>
+        <span>已答 <strong id="comparisonTotal">0</strong> 题</span>
+      </div>
+      <div class="comparison-question" aria-label="比较题目">
+        <span id="comparisonLeft">3</span>
+        <span class="comparison-circle" id="comparisonCircle" aria-label="待填比较符号"></span>
+        <span id="comparisonRightSide">5</span>
+      </div>
+      <div class="comparison-symbols" role="group" aria-label="选择比较符号">
+        <button type="button" data-symbol=">" aria-label="大于"><strong aria-hidden="true">&gt;</strong><span>大于</span></button>
+        <button type="button" data-symbol="<" aria-label="小于"><strong aria-hidden="true">&lt;</strong><span>小于</span></button>
+        <button type="button" data-symbol="=" aria-label="等于"><strong aria-hidden="true">=</strong><span>等于</span></button>
+      </div>
+      <p class="comparison-feedback" id="comparisonFeedback" role="status"></p>
+      <p class="comparison-explanation" id="comparisonExplanation"></p>
+      <div class="actions">
+        <button type="button" class="action" id="comparisonNext">下一题</button>
+        <button type="button" class="action secondary" id="comparisonReset">重新开始</button>
+      </div>
+    </section>
+  </main>
+  <dialog class="details-dialog" id="detailsDialog" aria-labelledby="detailsTitle">
+    <div class="details-header">
+      <h2 id="detailsTitle">答题详情</h2>
+      <form method="dialog"><button class="action secondary" type="submit">关闭</button></form>
+    </div>
+    <p id="detailsSummary"></p>
+    <button class="action" id="retryWrongButton" type="button" disabled>错题重做</button>
+    <div class="details-scroll">
+      <table class="details-table">
+        <thead><tr><th>题目</th><th>填写答案</th><th>正确答案</th><th>结果</th></tr></thead>
+        <tbody id="detailsRows"></tbody>
+      </table>
+    </div>
+  </dialog>
+
+  <script>
+    let activePage = "arithmetic";
+    let arithmeticPausedAt = null;
+    const formulaTextEl = document.querySelector("#formulaText");
+    const formulaPrefixEl = document.querySelector("#formulaPrefix");
+    const startButton = document.querySelector("#startButton");
+    const duration = 10 * 60 * 1000;
+    const timedButton = document.querySelector("#timedButton");
+    const hundredButton = document.querySelector("#hundredButton");
+    const specialtyPanel = document.querySelector("#specialtyPanel");
+    const operationLabels = {
+      mixed: "加减混合", chainAdd: "连加", chainSub: "连减",
+      addFirst: "找第一个加数（□ + 数 = 数）",
+      addSecond: "找第二个加数（数 + □ = 数）",
+      addResult: "求和（数 + 数 = □）",
+      subFirst: "找被减数（□ - 数 = 数）",
+      subSecond: "找减数（数 - □ = 数）",
+      subResult: "求差（数 - 数 = □）"
+    };
+    const answerSlotEl = document.querySelector("#answerSlot");
+    const answerForm = document.querySelector("#answerForm");
+    const messageEl = document.querySelector("#message");
+    const choicesEl = document.querySelector("#choices");
+    const timerEl = document.querySelector("#timer");
+    const rightCountEl = document.querySelector("#rightCount");
+    const wrongCountEl = document.querySelector("#wrongCount");
+    const totalCountEl = document.querySelector("#totalCount");
+    const nextButton = document.querySelector("#nextButton");
+    const resetButton = document.querySelector("#resetButton");
+    const tenModeButton = document.querySelector("#tenModeButton");
+    const twentyModeButton = document.querySelector("#twentyModeButton");
+    const mixedModeButton = document.querySelector("#mixedModeButton");
+    const chainAddButton = document.querySelector("#chainAddButton");
+    const chainSubButton = document.querySelector("#chainSubButton");
+    const finishButton = document.querySelector("#finishButton");
+    const historyListEl = document.querySelector("#historyList");
+    const historyKey = "mathPracticeResults";
+    let sessionHistory = null;
+    const rewardKey = "mathPracticeStars";
+    const starStatus = document.querySelector("#starStatus");
+    let rewards = loadRewards();
+
+    function loadRewards() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(rewardKey));
+        if (saved && Number.isSafeInteger(saved.balance) && saved.balance >= 0 && Number.isSafeInteger(saved.progress) && saved.progress >= 0 && saved.progress < 10) {
+          return { balance: saved.balance, progress: saved.progress };
+        }
+      } catch (error) {
+        // Keep practice usable if local storage is unavailable.
+      }
+      return { balance: 0, progress: 0 };
+    }
+
+    function renderRewards() {
+      document.querySelector("#starBalance").textContent = rewards.balance;
+      document.querySelector("#starProgress").textContent = `加减法再答对${10 - rewards.progress}题，获得1颗星星`;
+    }
+
+    function persistRewards() {
+      renderRewards();
+      try {
+        localStorage.setItem(rewardKey, JSON.stringify(rewards));
+      } catch (error) {
+        starStatus.textContent = "当前浏览器无法保存星星，关闭页面后可能丢失。";
+      }
+    }
+
+    function rewardCorrectAnswer() {
+      rewards.progress += 1;
+      if (rewards.progress === 10) {
+        rewards.progress = 0;
+        rewards.balance += 1;
+        starStatus.textContent = "累计答对10题，获得1颗星星！";
+      }
+      persistRewards();
+    }
+    const detailsButton = document.querySelector("#detailsButton");
+    const detailsDialog = document.querySelector("#detailsDialog");
+    const retryWrongButton = document.querySelector("#retryWrongButton");
+    let viewedRecord = null;
+    let latestRecord = null;
+
+    const state = {
+      maxNumber: 20,
+      operation: "mixed",
+      trainingMode: "timed",
+      reviewQueue: [],
+      reviewLabel: "",
+      answer: 0,
+      typedAnswer: "",
+      attempts: [],
+      right: 0,
+      wrong: 0,
+      total: 0,
+      answered: false,
+      finished: false,
+      running: false,
+      recordSaved: false,
+      startedAt: Date.now(),
+      timerId: null,
+      nextQuestionId: null
+    };
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function splitIntoTwo(total) {
+      const first = randomInt(1, total - 1);
+      return [first, total - first];
+    }
+
+    function makeQuestion() {
+      clearTimeout(state.nextQuestionId);
+      if (state.finished) {
+        return;
+      }
+
+      if (state.trainingMode === "review") {
+        const question = state.reviewQueue[state.total];
+        if (!question) return;
+        const [prefix, suffix] = question.question.split("□");
+        formulaPrefixEl.textContent = prefix.trim();
+        formulaTextEl.textContent = suffix.trim();
+        state.answer = question.answer;
+        prepareQuestionInput();
+        return;
+      }
+
+      const isAddition = state.operation.startsWith("add") ||
+        (state.operation === "mixed" && Math.random() >= 0.5);
+      let left;
+      let right;
+      let answer;
+
+      if (state.operation === "chainAdd") {
+        answer = randomInt(3, state.maxNumber);
+        left = randomInt(1, answer - 2);
+        right = randomInt(1, answer - left - 1);
+        const third = answer - left - right;
+        formulaTextEl.textContent = `${left} + ${right} + ${third} =`;
+      } else if (state.operation === "chainSub") {
+        left = randomInt(3, state.maxNumber);
+        answer = randomInt(1, left - 2);
+        const [firstSub, secondSub] = splitIntoTwo(left - answer);
+        formulaTextEl.textContent = `${left} - ${firstSub} - ${secondSub} =`;
+      } else if (isAddition) {
+        answer = randomInt(2, state.maxNumber);
+        left = randomInt(1, answer - 1);
+        right = answer - left;
+      } else {
+        left = randomInt(2, state.maxNumber);
+        answer = randomInt(1, left - 1);
+        right = left - answer;
+        formulaTextEl.textContent = `${left} - ${right} =`;
+      }
+
+      if (isAddition) {
+        formulaTextEl.textContent = `${left} + ${right} =`;
+      }
+
+      const tokens = `${formulaTextEl.textContent} ${answer}`.trim().split(/\s+/);
+      const positions = tokens.map((token, index) => /^\d+$/.test(token) ? index : -1).filter((index) => index >= 0);
+      const fixedPosition = state.operation.endsWith("First") ? 0 :
+        state.operation.endsWith("Second") ? 1 : state.operation.endsWith("Result") ? 2 : null;
+      const blank = positions[fixedPosition === null ? randomInt(0, positions.length - 1) : fixedPosition];
+      state.answer = Number(tokens[blank]);
+      formulaPrefixEl.textContent = tokens.slice(0, blank).join(" ");
+      formulaTextEl.textContent = tokens.slice(blank + 1).join(" ");
+      prepareQuestionInput();
+    }
+
+    function prepareQuestionInput() {
+      state.answered = false;
+      nextButton.disabled = true;
+      state.typedAnswer = "";
+      answerSlotEl.value = "";
+      answerSlotEl.readOnly = true;
+      answerSlotEl.className = "answer-slot empty";
+      messageEl.textContent = "";
+      messageEl.className = "message";
+
+      document.querySelectorAll(".choice").forEach((button) => {
+        button.classList.remove("correct", "wrong");
+        button.disabled = !state.running;
+      });
+    }
+
+    function renderChoices() {
+      choicesEl.innerHTML = "";
+      for (let number = 0; number <= 9; number += 1) {
+        const button = document.createElement("button");
+        button.className = "choice";
+        button.type = "button";
+        button.textContent = number;
+        button.dataset.value = String(number);
+        button.setAttribute("aria-label", `输入数字 ${number}`);
+        choicesEl.appendChild(button);
+      }
+    }
+
+    function updateStats() {
+      rightCountEl.textContent = state.right;
+      wrongCountEl.textContent = state.wrong;
+      totalCountEl.textContent = state.trainingMode === "review" ? `${state.total}/${state.reviewQueue.length}` : state.trainingMode === "hundred" ? `${state.total}/100` : state.total;
+    }
+
+    function formatTime(milliseconds) {
+      const totalSeconds = Math.floor(milliseconds / 1000);
+      const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+      const seconds = String(totalSeconds % 60).padStart(2, "0");
+      return `${minutes}:${seconds}`;
+    }
+
+    function startTimer() {
+      clearInterval(state.timerId);
+      state.startedAt = Date.now();
+      state.finished = false;
+      state.running = true;
+      timerEl.textContent = state.trainingMode !== "timed" ? "00:00" : "10:00";
+      state.timerId = setInterval(updateCountdown, 200);
+    }
+
+    function updateCountdown() {
+      if (!state.running || activePage !== "arithmetic") return;
+      if (state.trainingMode !== "timed") {
+        timerEl.textContent = formatTime(Date.now() - state.startedAt);
+        return;
+      }
+      const remaining = Math.max(0, duration - (Date.now() - state.startedAt));
+      timerEl.textContent = formatTime(Math.ceil(remaining / 1000) * 1000);
+      if (remaining === 0) finishGame();
+    }
+
+    function markWrongChoice(selected) {
+      const button = document.querySelector(`.choice[data-value="${selected}"]`);
+      if (button) {
+        button.classList.add("wrong");
+        button.disabled = true;
+      }
+    }
+
+    function submitAnswer(selected) {
+      if (!state.running || state.finished || state.answered || !Number.isInteger(selected)) {
+        return;
+      }
+      if (state.trainingMode === "timed" && Date.now() - state.startedAt >= duration) {
+        finishGame();
+        return;
+      }
+
+      if (selected < 0) {
+        answerSlotEl.value = String(selected);
+        answerSlotEl.className = "answer-slot bad";
+        messageEl.textContent = `请输入 1 到 ${state.maxNumber} 之间的数字`;
+        messageEl.className = "message bad";
+        state.typedAnswer = "";
+        return;
+      }
+
+      state.total += 1;
+      state.attempts.push({
+        question: `${formulaPrefixEl.textContent} □ ${formulaTextEl.textContent}`.trim(),
+        selected,
+        answer: state.answer,
+        correct: selected === state.answer
+      });
+      state.answered = true;
+      answerSlotEl.value = String(selected);
+      answerSlotEl.readOnly = true;
+
+      if (selected === state.answer) {
+        state.answered = true;
+        state.right += 1;
+        rewardCorrectAnswer();
+        answerSlotEl.className = "answer-slot good";
+        const correctButton = document.querySelector(`.choice[data-value="${selected}"]`);
+        if (correctButton) {
+          correctButton.classList.add("correct");
+        }
+        document.querySelectorAll(".choice").forEach((choice) => {
+          choice.disabled = true;
+        });
+        messageEl.textContent = "答对了！";
+        messageEl.className = "message good";
+      } else {
+        state.wrong += 1;
+        answerSlotEl.className = "answer-slot bad";
+        state.typedAnswer = "";
+        markWrongChoice(selected);
+        messageEl.textContent = "答错了，继续下一题";
+        messageEl.className = "message bad";
+      }
+
+      updateStats();
+      document.querySelectorAll(".choice").forEach((choice) => {
+        choice.disabled = true;
+      });
+      clearTimeout(state.nextQuestionId);
+      if ((state.trainingMode === "hundred" && state.total >= 100) || (state.trainingMode === "review" && state.total >= state.reviewQueue.length)) {
+        finishGame();
+        return;
+      }
+      state.nextQuestionId = setTimeout(() => {
+        updateCountdown();
+        if (state.running) makeQuestion();
+      }, 800);
+    }
+
+    function chooseAnswer(event) {
+      const button = event.target.closest(".choice");
+      if (!button || button.disabled) {
+        return;
+      }
+
+      appendArithmeticDigit(button.dataset.value);
+    }
+
+    function appendArithmeticDigit(digit) {
+      if (activePage !== "arithmetic" || !state.running || state.answered) return;
+      if (!/^\d$/.test(digit)) return;
+      state.typedAnswer += digit;
+      answerSlotEl.value = state.typedAnswer;
+      answerSlotEl.className = "answer-slot";
+      const selected = Number(state.typedAnswer);
+      const expected = String(state.answer);
+      if (!expected.startsWith(state.typedAnswer) || state.typedAnswer.length === expected.length) submitAnswer(selected);
+    }
+
+    function resetGame() {
+      clearTimeout(state.nextQuestionId);
+      clearInterval(state.timerId);
+      state.running = false;
+      state.finished = false;
+      state.right = 0;
+      state.wrong = 0;
+      state.total = 0;
+      state.recordSaved = false;
+      state.attempts = [];
+      detailsButton.hidden = true;
+      finishButton.classList.remove("active");
+      updateStats();
+      timerEl.textContent = state.trainingMode !== "timed" ? "00:00" : "10:00";
+      document.querySelector("#totalLabel").textContent = state.trainingMode === "review" ? "错题重做进度" : "已答题数";
+      document.querySelector("#timerLabel").textContent = state.trainingMode !== "timed" ? "总用时" : "剩余时间";
+      startButton.disabled = false;
+      nextButton.disabled = true;
+      finishButton.disabled = true;
+      renderChoices();
+      makeQuestion();
+      messageEl.textContent = "准备好了";
+    }
+
+    function startGame() {
+      if (state.running) return;
+      resetGame();
+      startTimer();
+      startButton.disabled = true;
+      finishButton.disabled = false;
+      makeQuestion();
+      answerSlotEl.focus();
+    }
+
+    function handleKeyboard(event) {
+      if (activePage !== "arithmetic" || detailsDialog.open) return;
+      if (event.target && event.target !== answerSlotEl && (event.target.matches("input, textarea, select") || event.target.isContentEditable)) return;
+      if (!state.running || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+      if (!/^\d$/.test(event.key) && !["Enter", "Backspace", "Escape"].includes(event.key)) return;
+      event.preventDefault();
+      updateCountdown();
+      if (!state.running || state.answered || event.repeat) return;
+      if (/^\d$/.test(event.key)) {
+        appendArithmeticDigit(event.key);
+        return;
+      } else if (event.key === "Backspace") {
+        state.typedAnswer = state.typedAnswer.slice(0, -1);
+      } else if (event.key === "Escape") {
+        state.typedAnswer = "";
+      } else if (event.key === "Enter") {
+        if (state.typedAnswer.length === String(state.answer).length) submitAnswer(Number(state.typedAnswer));
+        return;
+      }
+      answerSlotEl.value = state.typedAnswer;
+      answerSlotEl.className = state.typedAnswer ? "answer-slot" : "answer-slot empty";
+    }
+
+    function setMode(maxNumber) {
+      leaveReview();
+      state.maxNumber = maxNumber;
+      tenModeButton.classList.toggle("active", maxNumber === 10);
+      twentyModeButton.classList.toggle("active", maxNumber === 20);
+      resetGame();
+    }
+
+    function setOperation(operation) {
+      leaveReview();
+      state.operation = operation;
+      mixedModeButton.classList.toggle("active", operation === "mixed");
+      chainAddButton.classList.toggle("active", operation === "chainAdd");
+      chainSubButton.classList.toggle("active", operation === "chainSub");
+      document.querySelectorAll("[data-operation]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.operation === operation);
+        button.setAttribute("aria-pressed", String(button.dataset.operation === operation));
+      });
+      resetGame();
+    }
+
+    function setTrainingMode(mode) {
+      state.reviewQueue = [];
+      state.reviewLabel = "";
+      state.trainingMode = mode;
+      timedButton.classList.toggle("active", mode === "timed");
+      hundredButton.classList.toggle("active", mode === "hundred");
+      timedButton.setAttribute("aria-pressed", String(mode === "timed"));
+      hundredButton.setAttribute("aria-pressed", String(mode === "hundred"));
+      resetGame();
+    }
+
+    function getOperationLabel() {
+      return state.trainingMode === "review" ? state.reviewLabel : operationLabels[state.operation];
+    }
+
+    function leaveReview() {
+      if (state.trainingMode !== "review") return;
+      state.trainingMode = "timed";
+      state.reviewQueue = [];
+      state.reviewLabel = "";
+      timedButton.classList.add("active");
+      timedButton.setAttribute("aria-pressed", "true");
+      hundredButton.classList.remove("active");
+      hundredButton.setAttribute("aria-pressed", "false");
+    }
+
+    function retryWrongAnswers() {
+      if (!viewedRecord || !Array.isArray(viewedRecord.attempts)) return;
+      const record = viewedRecord;
+      const wrong = record.attempts.filter((attempt) => attempt.correct === false && typeof attempt.question === "string" && attempt.question.split("□").length === 2 && Number.isInteger(attempt.answer) && attempt.answer >= 0);
+      if (wrong.length === 0) return;
+      clearInterval(state.timerId);
+      clearTimeout(state.nextQuestionId);
+      state.running = false;
+      state.trainingMode = "review";
+      state.reviewQueue = wrong.map((attempt) => ({ question: attempt.question, answer: attempt.answer }));
+      state.reviewLabel = record.operation || "错题专项";
+      state.maxNumber = parseInt(record.range, 10) === 10 ? 10 : 20;
+      tenModeButton.classList.toggle("active", state.maxNumber === 10);
+      twentyModeButton.classList.toggle("active", state.maxNumber === 20);
+      timedButton.classList.remove("active");
+      hundredButton.classList.remove("active");
+      timedButton.setAttribute("aria-pressed", "false");
+      hundredButton.setAttribute("aria-pressed", "false");
+      if (detailsDialog.open) detailsDialog.close();
+      switchExercise("arithmetic");
+      startGame();
+      messageEl.textContent = `错题重做，共${wrong.length}题`;
+    }
+
+    function loadHistory() {
+      if (sessionHistory !== null) return sessionHistory;
+      try {
+        const saved = JSON.parse(localStorage.getItem(historyKey));
+        sessionHistory = Array.isArray(saved) ? saved.filter((record) => record && typeof record === "object").slice(0, 10) : [];
+      } catch (error) {
+        sessionHistory = [];
+      }
+      return sessionHistory;
+    }
+
+    function saveHistory(records) {
+      sessionHistory = records.slice(0, 10);
+      try {
+        localStorage.setItem(historyKey, JSON.stringify(sessionHistory));
+      } catch (error) {
+        starStatus.textContent = "成绩暂未保存到本地，本次详情仍可查看；关闭页面后可能丢失。";
+      }
+    }
+
+    function renderHistory() {
+      const records = loadHistory();
+      if (records.length === 0) {
+        historyListEl.innerHTML = '<p class="history-empty">还没有成绩，点“结束”后会记录</p>';
+        return;
+      }
+
+      historyListEl.innerHTML = `<ol class="history-list">${records.map((record, index) => `
+        <li class="history-item">
+          <span>${record.range} · ${record.operation}<br>${record.trainingMode || "10分钟计时"}<br>${record.time}</span>
+          <span><strong>${record.right}</strong> 题<br>${record.rate} 题/分钟</span>
+          <span>错 ${record.wrong} 次<br>用时 ${record.elapsed}</span>
+          <button class="action secondary" type="button" data-record-index="${index}" ${Array.isArray(record.attempts) ? "" : "disabled"}>${Array.isArray(record.attempts) ? "查看详情" : "旧记录无详情"}</button>
+        </li>
+      `).join("")}</ol>`;
+    }
+
+    function addHistoryRecord(elapsedMilliseconds, rightPerMinute) {
+      if (state.recordSaved) {
+        return;
+      }
+
+      state.recordSaved = true;
+      const now = new Date();
+      const records = loadHistory();
+      latestRecord = {
+        time: `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
+        range: `${state.maxNumber}以内`,
+        operation: getOperationLabel(),
+        trainingMode: state.trainingMode === "review" ? "错题重做" : state.trainingMode === "hundred" ? "100题练习" : "10分钟计时",
+        right: state.right,
+        wrong: state.wrong,
+        total: state.total,
+        elapsed: formatTime(elapsedMilliseconds),
+        rate: rightPerMinute.toFixed(1),
+        attempts: state.attempts.slice()
+      };
+      records.unshift(latestRecord);
+      saveHistory(records);
+      renderHistory();
+    }
+
+    function showDetails(record) {
+      if (!record || !Array.isArray(record.attempts)) return;
+      viewedRecord = record;
+      const wrongCount = record.attempts.filter((attempt) => attempt.correct === false).length;
+      retryWrongButton.disabled = wrongCount === 0;
+      retryWrongButton.textContent = wrongCount ? `错题重做（${wrongCount}题）` : "全部答对，无需重做";
+      document.querySelector("#detailsSummary").textContent = `${record.range} · ${record.operation} · ${record.trainingMode || "10分钟计时"} · 答对 ${record.right} 题 · 答错 ${record.wrong} 题 · 用时 ${record.elapsed}`;
+      const rows = document.querySelector("#detailsRows");
+      rows.replaceChildren();
+      record.attempts.forEach((attempt, index) => {
+        const row = document.createElement("tr");
+        [`${index + 1}. ${attempt.question}`, attempt.selected, attempt.answer, attempt.correct ? "正确" : "错误"].forEach((value) => {
+          const cell = document.createElement("td");
+          cell.textContent = String(value);
+          row.appendChild(cell);
+        });
+        row.lastElementChild.className = attempt.correct ? "details-correct" : "details-wrong";
+        rows.appendChild(row);
+      });
+      if (record.attempts.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 4;
+        cell.textContent = "本次没有提交答案";
+        row.appendChild(cell);
+        rows.appendChild(row);
+      }
+      if (!detailsDialog.open) detailsDialog.showModal();
+    }
+
+    function finishGame() {
+      if (!state.running || state.finished) {
+        return;
+      }
+
+      state.finished = true;
+      state.running = false;
+      state.answered = true;
+      clearTimeout(state.nextQuestionId);
+      clearInterval(state.timerId);
+      finishButton.classList.add("active");
+      document.querySelectorAll(".choice").forEach((choice) => {
+        choice.disabled = true;
+      });
+      const elapsedMilliseconds = state.trainingMode !== "timed" ? Date.now() - state.startedAt : Math.min(duration, Date.now() - state.startedAt);
+      timerEl.textContent = state.trainingMode !== "timed" ? formatTime(elapsedMilliseconds) : formatTime(Math.ceil((duration - elapsedMilliseconds) / 1000) * 1000);
+      startButton.disabled = false;
+      finishButton.disabled = true;
+      nextButton.disabled = true;
+      answerSlotEl.readOnly = true;
+      answerSlotEl.blur();
+      const elapsedMinutes = Math.max(elapsedMilliseconds / 60000, 1 / 60);
+      const rightPerMinute = state.right / elapsedMinutes;
+      addHistoryRecord(elapsedMilliseconds, rightPerMinute);
+      detailsButton.hidden = false;
+      messageEl.textContent = `练习结束：已答 ${state.total} 题，答对 ${state.right} 题，答错 ${state.wrong} 题，总用时 ${formatTime(elapsedMilliseconds)}，约 ${rightPerMinute.toFixed(1)} 题/分钟`;
+      messageEl.className = "message";
+      showDetails(latestRecord);
+    }
+
+    choicesEl.addEventListener("click", chooseAnswer);
+    nextButton.addEventListener("click", makeQuestion);
+    resetButton.addEventListener("click", resetGame);
+    tenModeButton.addEventListener("click", () => setMode(10));
+    twentyModeButton.addEventListener("click", () => setMode(20));
+    mixedModeButton.addEventListener("click", () => setOperation("mixed"));
+    chainAddButton.addEventListener("click", () => setOperation("chainAdd"));
+    chainSubButton.addEventListener("click", () => setOperation("chainSub"));
+    finishButton.addEventListener("click", finishGame);
+    startButton.addEventListener("click", startGame);
+    timedButton.addEventListener("click", () => setTrainingMode("timed"));
+    hundredButton.addEventListener("click", () => setTrainingMode("hundred"));
+    specialtyPanel.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-operation]");
+      if (button) setOperation(button.dataset.operation);
+    });
+    detailsButton.addEventListener("click", () => showDetails(latestRecord));
+    retryWrongButton.addEventListener("click", retryWrongAnswers);
+    historyListEl.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-record-index]");
+      if (button && !button.disabled) showDetails(loadHistory()[Number(button.dataset.recordIndex)]);
+    });
+    document.querySelector("#starRedeemForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const input = document.querySelector("#starAmount");
+      const raw = input.value.trim();
+      const amount = Number(raw);
+      if (!/^\d+$/.test(raw) || !Number.isSafeInteger(amount) || amount < 1) {
+        starStatus.textContent = "请输入大于0的整数。";
+        return;
+      }
+      if (amount > rewards.balance) {
+        starStatus.textContent = `星星不足，当前共有${rewards.balance}颗。`;
+        return;
+      }
+      rewards.balance -= amount;
+      input.value = "";
+      starStatus.textContent = `已兑换${amount}颗星星，剩余${rewards.balance}颗。`;
+      persistRewards();
+    });
+    document.querySelector("#clearHistory").addEventListener("click", () => {
+      try {
+        localStorage.removeItem(historyKey);
+      } catch (error) {
+        starStatus.textContent = "暂时无法清除历史记录，请重试。";
+        return;
+      }
+      latestRecord = null;
+      viewedRecord = null;
+      sessionHistory = [];
+      detailsButton.hidden = true;
+      if (detailsDialog.open) detailsDialog.close();
+      renderHistory();
+      starStatus.textContent = "历史成绩和逐题详情已清空，星星余额与奖励进度保留。";
+    });
+    document.addEventListener("keydown", handleKeyboard);
+    answerSlotEl.addEventListener("input", () => {
+      answerSlotEl.value = answerSlotEl.value.replace(/[^0-9]/g, "").slice(0, 2);
+      state.typedAnswer = answerSlotEl.value;
+      answerSlotEl.className = state.typedAnswer ? "answer-slot" : "answer-slot empty";
+    });
+    answerForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (activePage !== "arithmetic" || !state.running || state.answered) return;
+      if (!/^\d+$/.test(answerSlotEl.value) || answerSlotEl.value.length !== String(state.answer).length) return;
+      submitAnswer(Number(answerSlotEl.value));
+    });
+    renderHistory();
+    renderRewards();
+    resetGame();
+  </script>
+  <script>
+const cubeState = { shape: "block", layers: [], total: 0, right: 0, wrong: 0, answered: false, nextQuestionId: null };
+const cubeInput = document.querySelector("#cubeAnswer");
+const cubeFeedback = document.querySelector("#cubeFeedback");
+const cubeExplanation = document.querySelector("#cubeExplanation");
+const cubeChoices = document.querySelector("#cubeChoices");
+const exercisePages = ["arithmetic", "cubes", "comparison"];
+
+function switchExercise(page) {
+  if (page === activePage) return;
+  if (activePage === "arithmetic" && state.running) {
+    updateCountdown();
+    if (state.running) arithmeticPausedAt = Date.now();
+  }
+  activePage = page;
+  document.querySelector("#arithmeticStats").hidden = page !== "arithmetic";
+  document.querySelector("#summaryBar").classList.toggle("stars-only", page !== "arithmetic");
+  if (page === "arithmetic" && arithmeticPausedAt !== null) {
+    if (state.running) state.startedAt += Date.now() - arithmeticPausedAt;
+    arithmeticPausedAt = null;
+  }
+  for (const name of exercisePages) {
+    const selected = name === page;
+    document.querySelector(`#${name}Page`).hidden = !selected;
+    const tab = document.querySelector(`#${name}Tab`);
+    tab.setAttribute("aria-selected", String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+  }
+}
+
+for (const name of exercisePages) {
+  const tab = document.querySelector(`#${name}Tab`);
+  tab.addEventListener("click", () => switchExercise(name));
+  tab.addEventListener("keydown", (event) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const index = exercisePages.indexOf(name);
+    const offset = event.key === "ArrowRight" ? 1 : -1;
+    const next = event.key === "Home" ? exercisePages[0] : event.key === "End" ? exercisePages[exercisePages.length - 1] : exercisePages[(index + offset + exercisePages.length) % exercisePages.length];
+    switchExercise(next);
+    document.querySelector(`#${next}Tab`).focus();
+  });
+}
+
+// Isometric illustration: draw distant columns first, then the foreground.
+function drawCube(x, y, z, originX, originY, reference = false) {
+  const px = originX + (x - y) * 32;
+  const py = originY + (x + y) * 16 - z * 38;
+  const points = (items) => items.map(([dx, dy]) => `${px + dx},${py + dy}`).join(" ");
+  const palette = reference ? ["#fff1ba", "#d69e37", "#edc365"] : ["#a5e4df", "#319ca7", "#69c5c6"];
+  return `<g stroke="${reference ? "#8a652b" : "#216d7b"}" stroke-width="1.5" stroke-linejoin="round">
+    <polygon fill="${palette[1]}" points="${points([[-32, 16], [0, 32], [0, 70], [-32, 54]])}"/>
+    <polygon fill="${palette[2]}" points="${points([[0, 32], [32, 16], [32, 54], [0, 70]])}"/>
+    <polygon fill="${palette[0]}" points="${points([[0, 0], [32, 16], [0, 32], [-32, 16]])}"/>
+  </g>`;
+}
+
+function renderCubeScene() {
+  const cubes = [];
+  cubeState.layers.forEach((layer, z) => {
+    for (let x = 0; x < layer.width; x += 1) {
+      for (let y = 0; y < layer.depth; y += 1) cubes.push({ x, y, z });
+    }
+  });
+  cubes.sort((a, b) => (a.x + a.y) - (b.x + b.y) || a.z - b.z || a.x - b.x);
+  document.querySelector("#cubeScene").innerHTML = `<svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="左侧为待计数的叠放方块，右侧为不计数的一个参照方块">
+    <path d="M110 326 L300 225 L490 326 L300 407 Z" fill="#e0ecef"/>
+    ${cubes.map(({ x, y, z }) => drawCube(x, y, z, 300, 210)).join("")}
+    ${drawCube(0, 0, 0, 605, 275, true)}
+    <text x="605" y="377" text-anchor="middle" fill="#75603d" font-size="18">1个小方块</text>
+  </svg>`;
+}
+
+function newCubeQuestion() {
+  clearTimeout(cubeState.nextQuestionId);
+  const width = randomInt(2, 3);
+  const depth = randomInt(2, 3);
+  const height = randomInt(2, 3);
+  cubeState.layers = [];
+  for (let z = 0; z < height; z += 1) {
+    cubeState.layers.push({
+      width: cubeState.shape === "steps" ? Math.max(1, width - z) : width,
+      depth: cubeState.shape === "steps" ? Math.max(1, depth - z) : depth
+    });
+  }
+  cubeState.total = cubeState.layers.reduce((sum, layer) => sum + layer.width * layer.depth, 0);
+  cubeState.answered = false;
+  cubeInput.value = "";
+  cubeInput.disabled = false;
+  cubeChoices.querySelectorAll("button").forEach((button) => {
+    button.disabled = false;
+    button.classList.remove("selected");
+  });
+  cubeFeedback.textContent = "";
+  cubeFeedback.className = "cube-feedback";
+  cubeExplanation.hidden = true;
+  cubeExplanation.replaceChildren();
+  renderCubeScene();
+}
+
+document.querySelector("#cubeForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (activePage !== "cubes" || cubeState.answered) return;
+  const raw = cubeInput.value.trim();
+  const expected = String(cubeState.total);
+  if (expected.startsWith(raw) && raw.length < expected.length) return;
+  if (!/^\d+$/.test(raw)) {
+    cubeFeedback.textContent = "请先填写答案";
+    cubeFeedback.className = "cube-feedback bad";
+    return;
+  }
+  cubeState.answered = true;
+  const correct = Number(raw) === cubeState.total;
+  cubeState[correct ? "right" : "wrong"] += 1;
+  document.querySelector("#cubeRight").textContent = cubeState.right;
+  document.querySelector("#cubeWrong").textContent = cubeState.wrong;
+  cubeInput.disabled = true;
+  cubeChoices.querySelectorAll("button").forEach((button) => {
+    button.disabled = true;
+    button.classList.toggle("selected", Number(button.dataset.value) === Number(raw));
+  });
+  cubeFeedback.textContent = correct ? `答对了！一共有 ${cubeState.total} 个小方块。` : `你填了 ${Number(raw)}，一共有 ${cubeState.total} 个。看看每一层吧。`;
+  cubeFeedback.className = `cube-feedback ${correct ? "good" : "bad"}`;
+  cubeExplanation.innerHTML = `<h2>从下往上，分层数一数</h2><div class="cube-layer-plans">${cubeState.layers.map((layer, index) => `<div class="cube-layer"><p>第${index + 1}层</p><div class="cube-layer-plan" style="grid-template-columns:repeat(${layer.width},18px)">${"<i></i>".repeat(layer.width * layer.depth)}</div><p>${layer.width * layer.depth}个</p></div>`).join("")}</div><p>${cubeState.layers.map((layer) => layer.width * layer.depth).join(" + ")} = ${cubeState.total} 个</p>`;
+  cubeExplanation.hidden = false;
+  if (correct) {
+    cubeState.nextQuestionId = setTimeout(() => {
+      newCubeQuestion();
+      if (activePage === "cubes") cubeInput.focus();
+    }, 800);
+  }
+});
+
+document.querySelectorAll("[data-shape]").forEach((button) => {
+  button.addEventListener("click", () => {
+    cubeState.shape = button.dataset.shape;
+    document.querySelectorAll("[data-shape]").forEach((item) => {
+      item.classList.toggle("active", item === button);
+      item.setAttribute("aria-pressed", String(item === button));
+    });
+    newCubeQuestion();
+  });
+});
+document.querySelector("#cubeNext").addEventListener("click", () => { newCubeQuestion(); cubeInput.focus(); });
+document.querySelector("#cubeReset").addEventListener("click", () => {
+  cubeState.right = 0;
+  cubeState.wrong = 0;
+  document.querySelector("#cubeRight").textContent = "0";
+  document.querySelector("#cubeWrong").textContent = "0";
+  newCubeQuestion();
+});
+for (let number = 0; number <= 9; number += 1) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "cube-number";
+  button.dataset.value = String(number);
+  button.textContent = number;
+  button.setAttribute("aria-label", `输入数字 ${number}`);
+  cubeChoices.appendChild(button);
+}
+cubeChoices.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-value]");
+  if (!button || button.disabled || activePage !== "cubes" || cubeState.answered) return;
+  appendCubeDigit(button.dataset.value);
+});
+function appendCubeDigit(digit) {
+  if (activePage !== "cubes" || cubeState.answered) return;
+  if (!/^\d$/.test(digit)) return;
+  cubeInput.value += digit;
+  const expected = String(cubeState.total);
+  if (!expected.startsWith(cubeInput.value) || cubeInput.value.length === expected.length) document.querySelector("#cubeForm").requestSubmit();
+}
+document.addEventListener("keydown", (event) => {
+  if (activePage !== "cubes" || cubeState.answered || event.ctrlKey || event.metaKey || event.altKey || event.isComposing || event.repeat) return;
+  if (event.target && event.target !== cubeInput && (event.target.matches("input, textarea, select") || event.target.isContentEditable)) return;
+  if (!/^\d$/.test(event.key) && !["Backspace", "Escape", "Enter"].includes(event.key)) return;
+  event.preventDefault();
+  if (/^\d$/.test(event.key)) appendCubeDigit(event.key);
+  else if (event.key === "Backspace") cubeInput.value = cubeInput.value.slice(0, -1);
+  else if (event.key === "Escape") cubeInput.value = "";
+  else if (cubeInput.value) document.querySelector("#cubeForm").requestSubmit();
+});
+newCubeQuestion();
+  </script>
+  <script>
+const comparisonState = { mode: "numbers", left: null, right: null, symbol: "", answered: false, correct: 0, wrong: 0, nextQuestionId: null };
+const comparisonNames = { ">": "大于", "<": "小于", "=": "等于" };
+const comparisonCircle = document.querySelector("#comparisonCircle");
+const comparisonFeedback = document.querySelector("#comparisonFeedback");
+const comparisonExplanation = document.querySelector("#comparisonExplanation");
+
+function comparisonSide(value, expression) {
+  if (!expression) return { text: String(value), value };
+  if (Math.random() < 0.5 && value >= 2) {
+    const first = randomInt(1, value - 1);
+    return { text: `${first} + ${value - first}`, value };
+  }
+  const first = randomInt(value, 20);
+  return { text: `${first} - ${first - value}`, value };
+}
+
+function newComparisonQuestion() {
+  clearTimeout(comparisonState.nextQuestionId);
+  // Balance the three relations so equality gets as much practice as inequality.
+  const relation = randomInt(0, 2);
+  let leftValue;
+  let rightValue;
+  if (relation === 0) {
+    leftValue = randomInt(1, 20);
+    rightValue = randomInt(0, leftValue - 1);
+  } else if (relation === 1) {
+    rightValue = randomInt(1, 20);
+    leftValue = randomInt(0, rightValue - 1);
+  } else {
+    leftValue = rightValue = randomInt(0, 20);
+  }
+  const expressionOnLeft = comparisonState.mode === "both" || (comparisonState.mode === "expression" && Math.random() < 0.5);
+  const expressionOnRight = comparisonState.mode === "both" || (comparisonState.mode === "expression" && !expressionOnLeft);
+  comparisonState.left = comparisonSide(leftValue, expressionOnLeft);
+  comparisonState.right = comparisonSide(rightValue, expressionOnRight);
+  comparisonState.symbol = leftValue > rightValue ? ">" : leftValue < rightValue ? "<" : "=";
+  comparisonState.answered = false;
+  document.querySelector("#comparisonLeft").textContent = comparisonState.left.text;
+  document.querySelector("#comparisonRightSide").textContent = comparisonState.right.text;
+  comparisonCircle.textContent = "";
+  comparisonCircle.className = "comparison-circle";
+  comparisonCircle.setAttribute("aria-label", "待填比较符号");
+  comparisonFeedback.textContent = "";
+  comparisonFeedback.className = "comparison-feedback";
+  comparisonExplanation.textContent = "";
+  document.querySelectorAll("[data-symbol]").forEach((button) => {
+    button.disabled = false;
+    button.classList.remove("selected");
+    button.setAttribute("aria-pressed", "false");
+  });
+}
+
+function updateComparisonStats() {
+  document.querySelector("#comparisonRight").textContent = comparisonState.correct;
+  document.querySelector("#comparisonWrong").textContent = comparisonState.wrong;
+  document.querySelector("#comparisonTotal").textContent = comparisonState.correct + comparisonState.wrong;
+}
+
+function submitComparison(symbol) {
+  if (activePage !== "comparison" || comparisonState.answered || !(symbol in comparisonNames)) return;
+  comparisonState.answered = true;
+  const correct = symbol === comparisonState.symbol;
+  comparisonState[correct ? "correct" : "wrong"] += 1;
+  comparisonCircle.textContent = symbol;
+  comparisonCircle.className = `comparison-circle ${correct ? "good" : "bad"}`;
+  comparisonCircle.setAttribute("aria-label", `所选符号：${comparisonNames[symbol]}`);
+  comparisonFeedback.textContent = correct ? "答对了！" : `答错了，应该选“${comparisonNames[comparisonState.symbol]}”`;
+  comparisonFeedback.className = `comparison-feedback ${correct ? "good" : "bad"}`;
+  const left = comparisonState.left;
+  const right = comparisonState.right;
+  const calculations = [left, right].filter((side) => /[+-]/.test(side.text)).map((side) => `${side.text} = ${side.value}`);
+  comparisonExplanation.textContent = [...calculations, `${left.value} ${comparisonState.symbol} ${right.value}`].join("，");
+  document.querySelectorAll("[data-symbol]").forEach((button) => {
+    button.disabled = true;
+    button.classList.toggle("selected", button.dataset.symbol === symbol);
+    button.setAttribute("aria-pressed", String(button.dataset.symbol === symbol));
+  });
+  updateComparisonStats();
+  if (correct) comparisonState.nextQuestionId = setTimeout(newComparisonQuestion, 800);
+}
+
+document.querySelectorAll("[data-symbol]").forEach((button) => {
+  button.addEventListener("click", () => submitComparison(button.dataset.symbol));
+});
+document.querySelectorAll("[data-comparison-mode]").forEach((button) => {
+  button.addEventListener("click", () => {
+    comparisonState.mode = button.dataset.comparisonMode;
+    document.querySelectorAll("[data-comparison-mode]").forEach((item) => {
+      item.classList.toggle("active", item === button);
+      item.setAttribute("aria-pressed", String(item === button));
+    });
+    newComparisonQuestion();
+  });
+});
+document.querySelector("#comparisonNext").addEventListener("click", newComparisonQuestion);
+document.querySelector("#comparisonReset").addEventListener("click", () => {
+  comparisonState.correct = 0;
+  comparisonState.wrong = 0;
+  updateComparisonStats();
+  newComparisonQuestion();
+});
+newComparisonQuestion();
+  </script>
+</body>
+</html>
