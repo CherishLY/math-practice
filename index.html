@@ -14,7 +14,7 @@
 .cubes-heading h1 { margin: 0 0 10px; font-size: 25px; }
 .cubes-heading p, .cube-reference { color: var(--muted); line-height: 1.6; }
 .cube-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 22px; }
-.cube-shapes { display: flex; gap: 8px; }
+.cube-shapes { display: flex; flex-wrap: wrap; gap: 8px; }
 .cube-shapes button { padding: 8px 18px; }
 .cube-score { display: flex; gap: 10px; flex-wrap: wrap; }
 #cubeRight { color: var(--green); } #cubeWrong { color: var(--red); }
@@ -32,6 +32,8 @@
 .cube-layer-plans { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; }
 .cube-layer-plan { display: grid; gap: 4px; justify-content: center; }
 .cube-layer-plan i { width: 18px; height: 18px; background: #60bfc1; border: 1px solid #25838c; }
+.cube-layer-plan.cylinder-plan i { border-radius: 50%; background: #c6b9ed; border-color: #7864ad; }
+.cube-layer-plan.cuboid-plan i { background: #f5cc91; border-color: #a77634; }
 .cube-layer { min-width: 90px; }
 @media (max-width: 680px) {
   .cubes-page { padding: 20px 14px; }
@@ -47,6 +49,7 @@
 .comparison-heading p { color: var(--muted); margin-bottom: 24px; }
 .comparison-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .comparison-modes button { padding: 10px 6px; }
+.comparison-ranges { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
 .comparison-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin: 28px 0; font-size: 16px; }
 #comparisonRight { color: var(--green); }
 #comparisonWrong { color: var(--red); }
@@ -727,22 +730,24 @@
     </section>
     </div>
     <section id="cubesPage" class="cubes-page" role="tabpanel" aria-labelledby="cubesTab" hidden>
-      <header class="cubes-heading"><h1>一共有几个小方块？</h1><p>每层都铺满，下面没有空洞。被遮住的小方块也要数。</p></header>
+      <header class="cubes-heading"><h1 id="solidQuestionTitle">一共有几个小方块？</h1><p id="solidQuestionRule">每层都铺满，下面没有空洞。被遮住的小方块也要数。</p></header>
       <div class="cube-tools">
         <div class="cube-shapes" role="group" aria-label="叠放类型">
           <button class="mode-button active" type="button" data-shape="block" aria-pressed="true">整齐叠放</button>
           <button class="mode-button" type="button" data-shape="steps" aria-pressed="false">阶梯叠放</button>
+          <button class="mode-button" type="button" data-shape="cuboid" aria-pressed="false">数长方体</button>
+          <button class="mode-button" type="button" data-shape="cylinder" aria-pressed="false">数圆柱</button>
         </div>
         <p class="cube-score">答对 <strong id="cubeRight">0</strong> 题 <span>·</span> 答错 <strong id="cubeWrong">0</strong> 题</p>
       </div>
       <div class="cube-scene" id="cubeScene"></div>
-      <p class="cube-reference">右侧是一个小方块作参照，不计入左侧的总数。</p>
+      <p class="cube-reference" id="solidReference">右侧是一个小方块作参照，不计入左侧的总数。</p>
       <form class="cube-answer-form" id="cubeForm">
         <label for="cubeAnswer">左侧共有</label>
         <span class="answer-control">
           <input id="cubeAnswer" type="text" inputmode="none" maxlength="2" autocomplete="off" aria-label="方块总数" readonly>
         </span>
-        <span>个小方块</span>
+        <span id="solidAnswerUnit">个小方块</span>
       </form>
       <div class="cube-choices" id="cubeChoices" aria-label="选择方块总数"></div>
       <p id="cubeFeedback" class="cube-feedback" role="status"></p>
@@ -750,7 +755,11 @@
       <div class="actions"><button class="action secondary" type="button" id="cubeNext">下一题</button><button class="action secondary" type="button" id="cubeReset">重新开始</button></div>
     </section>
     <section id="comparisonPage" class="comparison-page" role="tabpanel" aria-labelledby="comparisonTab" hidden>
-      <header class="comparison-heading"><h1>比一比，填符号</h1><p>20以内的大小比较</p></header>
+      <header class="comparison-heading"><h1>比一比，填符号</h1><p id="comparisonRangeLabel">20以内的大小比较</p></header>
+      <div class="comparison-ranges" role="group" aria-label="比较数字范围">
+        <button class="mode-button" type="button" data-comparison-range="10" aria-pressed="false">10以内</button>
+        <button class="mode-button active" type="button" data-comparison-range="20" aria-pressed="true">20以内</button>
+      </div>
       <div class="comparison-modes" role="group" aria-label="比较题型">
         <button class="mode-button active" type="button" data-comparison-mode="numbers" aria-pressed="true">数字比数字</button>
         <button class="mode-button" type="button" data-comparison-mode="expression" aria-pressed="false">算式比数字</button>
@@ -1503,7 +1512,35 @@ function drawCube(x, y, z, originX, originY, reference = false) {
   </g>`;
 }
 
+function solidName() {
+  return cubeState.shape === "cuboid" ? "长方体" : cubeState.shape === "cylinder" ? "圆柱" : "小方块";
+}
+
+function drawCountingSolid(x, y, z, originX, originY, reference = false) {
+  if (cubeState.shape === "cylinder") {
+    const cx = originX + (x - y) * 32;
+    const cy = originY + (x + y) * 16 - z * 38 + 16;
+    const stroke = reference ? "#8a652b" : "#68568d";
+    return `<g stroke="${stroke}" stroke-width="1.5">
+      <path d="M${cx - 26} ${cy} L${cx - 26} ${cy + 38} A26 13 0 0 0 ${cx + 26} ${cy + 38} L${cx + 26} ${cy} Z" fill="${reference ? "#edc365" : "#b4a0db"}"/>
+      <ellipse cx="${cx}" cy="${cy}" rx="26" ry="13" fill="${reference ? "#fff1ba" : "#e3d9f6"}"/>
+    </g>`;
+  }
+  if (cubeState.shape === "cuboid") {
+    const px = originX + x * 44 - y * 25;
+    const py = originY + x * 22 + y * 12 - z * 28;
+    const points = (items) => items.map(([dx, dy]) => `${px + dx},${py + dy}`).join(" ");
+    return `<g stroke="${reference ? "#8a652b" : "#94652c"}" stroke-width="1.5" stroke-linejoin="round">
+      <polygon fill="${reference ? "#d69e37" : "#dca657"}" points="${points([[-25, 12], [19, 34], [19, 62], [-25, 40]])}"/>
+      <polygon fill="${reference ? "#edc365" : "#edc183"}" points="${points([[19, 34], [44, 22], [44, 50], [19, 62]])}"/>
+      <polygon fill="${reference ? "#fff1ba" : "#ffe2b6"}" points="${points([[0, 0], [44, 22], [19, 34], [-25, 12]])}"/>
+    </g>`;
+  }
+  return drawCube(x, y, z, originX, originY, reference);
+}
+
 function renderCubeScene() {
+  const name = solidName();
   const cubes = [];
   cubeState.layers.forEach((layer, z) => {
     for (let x = 0; x < layer.width; x += 1) {
@@ -1511,24 +1548,26 @@ function renderCubeScene() {
     }
   });
   cubes.sort((a, b) => (a.x + a.y) - (b.x + b.y) || a.z - b.z || a.x - b.x);
-  document.querySelector("#cubeScene").innerHTML = `<svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="左侧为待计数的叠放方块，右侧为不计数的一个参照方块">
+  document.querySelector("#cubeScene").innerHTML = `<svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="左侧为待计数的叠放${name}，右侧为不计数的一个参照${name}">
     <path d="M110 326 L300 225 L490 326 L300 407 Z" fill="#e0ecef"/>
-    ${cubes.map(({ x, y, z }) => drawCube(x, y, z, 300, 210)).join("")}
-    ${drawCube(0, 0, 0, 605, 275, true)}
-    <text x="605" y="377" text-anchor="middle" fill="#75603d" font-size="18">1个小方块</text>
+    ${cubes.map(({ x, y, z }) => drawCountingSolid(x, y, z, 300, 210)).join("")}
+    ${drawCountingSolid(0, 0, 0, 605, 275, true)}
+    <text x="605" y="377" text-anchor="middle" fill="#75603d" font-size="18">1个${name}</text>
   </svg>`;
 }
 
 function newCubeQuestion() {
   clearTimeout(cubeState.nextQuestionId);
-  const width = randomInt(2, 3);
+  const complex = cubeState.shape === "cuboid" || cubeState.shape === "cylinder";
+  const width = randomInt(2, complex ? 4 : 3);
   const depth = randomInt(2, 3);
   const height = randomInt(2, 3);
+  const shrinkDepth = complex ? randomInt(0, 1) : 1;
   cubeState.layers = [];
   for (let z = 0; z < height; z += 1) {
     cubeState.layers.push({
-      width: cubeState.shape === "steps" ? Math.max(1, width - z) : width,
-      depth: cubeState.shape === "steps" ? Math.max(1, depth - z) : depth
+      width: cubeState.shape !== "block" ? Math.max(1, width - z) : width,
+      depth: cubeState.shape !== "block" ? Math.max(1, depth - z * shrinkDepth) : depth
     });
   }
   cubeState.total = cubeState.layers.reduce((sum, layer) => sum + layer.width * layer.depth, 0);
@@ -1543,6 +1582,13 @@ function newCubeQuestion() {
   cubeFeedback.className = "cube-feedback";
   cubeExplanation.hidden = true;
   cubeExplanation.replaceChildren();
+  const name = solidName();
+  document.querySelector("#solidQuestionTitle").textContent = `一共有几个${name}？`;
+  document.querySelector("#solidQuestionRule").textContent = `每层按长方形排满，下面没有空洞。被遮住的${name}也要数。`;
+  document.querySelector("#solidReference").textContent = `右侧是一个${name}作参照，不计入左侧的总数。`;
+  document.querySelector("#solidAnswerUnit").textContent = `个${name}`;
+  cubeInput.setAttribute("aria-label", `${name}总数`);
+  cubeChoices.setAttribute("aria-label", `输入${name}总数`);
   renderCubeScene();
 }
 
@@ -1567,9 +1613,9 @@ document.querySelector("#cubeForm").addEventListener("submit", (event) => {
     button.disabled = true;
     button.classList.toggle("selected", Number(button.dataset.value) === Number(raw));
   });
-  cubeFeedback.textContent = correct ? `答对了！一共有 ${cubeState.total} 个小方块。` : `你填了 ${Number(raw)}，一共有 ${cubeState.total} 个。看看每一层吧。`;
+  cubeFeedback.textContent = correct ? `答对了！一共有 ${cubeState.total} 个${solidName()}。` : `你填了 ${Number(raw)}，一共有 ${cubeState.total} 个${solidName()}。看看每一层吧。`;
   cubeFeedback.className = `cube-feedback ${correct ? "good" : "bad"}`;
-  cubeExplanation.innerHTML = `<h2>从下往上，分层数一数</h2><div class="cube-layer-plans">${cubeState.layers.map((layer, index) => `<div class="cube-layer"><p>第${index + 1}层</p><div class="cube-layer-plan" style="grid-template-columns:repeat(${layer.width},18px)">${"<i></i>".repeat(layer.width * layer.depth)}</div><p>${layer.width * layer.depth}个</p></div>`).join("")}</div><p>${cubeState.layers.map((layer) => layer.width * layer.depth).join(" + ")} = ${cubeState.total} 个</p>`;
+  cubeExplanation.innerHTML = `<h2>从下往上，分层数${solidName()}</h2><div class="cube-layer-plans">${cubeState.layers.map((layer, index) => `<div class="cube-layer"><p>第${index + 1}层</p><div class="cube-layer-plan ${cubeState.shape}-plan" style="grid-template-columns:repeat(${layer.width},18px)">${"<i></i>".repeat(layer.width * layer.depth)}</div><p>${layer.width * layer.depth}个</p></div>`).join("")}</div><p>${cubeState.layers.map((layer) => layer.width * layer.depth).join(" + ")} = ${cubeState.total} 个${solidName()}</p>`;
   cubeExplanation.hidden = false;
   if (correct) {
     cubeState.nextQuestionId = setTimeout(() => {
@@ -1631,7 +1677,7 @@ document.addEventListener("keydown", (event) => {
 newCubeQuestion();
   </script>
   <script>
-const comparisonState = { mode: "numbers", left: null, right: null, symbol: "", answered: false, correct: 0, wrong: 0, nextQuestionId: null };
+const comparisonState = { mode: "numbers", maxNumber: 20, left: null, right: null, symbol: "", answered: false, correct: 0, wrong: 0, nextQuestionId: null };
 const comparisonNames = { ">": "大于", "<": "小于", "=": "等于" };
 const comparisonCircle = document.querySelector("#comparisonCircle");
 const comparisonFeedback = document.querySelector("#comparisonFeedback");
@@ -1643,7 +1689,7 @@ function comparisonSide(value, expression) {
     const first = randomInt(1, value - 1);
     return { text: `${first} + ${value - first}`, value };
   }
-  const first = randomInt(value, 20);
+  const first = randomInt(value, comparisonState.maxNumber);
   return { text: `${first} - ${first - value}`, value };
 }
 
@@ -1654,13 +1700,13 @@ function newComparisonQuestion() {
   let leftValue;
   let rightValue;
   if (relation === 0) {
-    leftValue = randomInt(1, 20);
+    leftValue = randomInt(1, comparisonState.maxNumber);
     rightValue = randomInt(0, leftValue - 1);
   } else if (relation === 1) {
-    rightValue = randomInt(1, 20);
+    rightValue = randomInt(1, comparisonState.maxNumber);
     leftValue = randomInt(0, rightValue - 1);
   } else {
-    leftValue = rightValue = randomInt(0, 20);
+    leftValue = rightValue = randomInt(0, comparisonState.maxNumber);
   }
   const expressionOnLeft = comparisonState.mode === "both" || (comparisonState.mode === "expression" && Math.random() < 0.5);
   const expressionOnRight = comparisonState.mode === "both" || (comparisonState.mode === "expression" && !expressionOnLeft);
@@ -1722,6 +1768,17 @@ document.querySelectorAll("[data-comparison-mode]").forEach((button) => {
       item.classList.toggle("active", item === button);
       item.setAttribute("aria-pressed", String(item === button));
     });
+    newComparisonQuestion();
+  });
+});
+document.querySelectorAll("[data-comparison-range]").forEach((button) => {
+  button.addEventListener("click", () => {
+    comparisonState.maxNumber = Number(button.dataset.comparisonRange);
+    document.querySelectorAll("[data-comparison-range]").forEach((item) => {
+      item.classList.toggle("active", item === button);
+      item.setAttribute("aria-pressed", String(item === button));
+    });
+    document.querySelector("#comparisonRangeLabel").textContent = `${comparisonState.maxNumber}以内的大小比较`;
     newComparisonQuestion();
   });
 });
