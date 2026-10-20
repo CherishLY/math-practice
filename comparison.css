@@ -1,0 +1,37 @@
+.exercise-tabs { gap: 20px; flex-wrap: wrap; }
+.comparison-page { padding: 28px; }
+.comparison-heading h1 { font-size: 25px; margin: 0 0 10px; }
+.comparison-heading p { color: var(--muted); margin-bottom: 24px; }
+.comparison-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.comparison-modes button { padding: 10px 6px; }
+.comparison-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin: 28px 0; font-size: 16px; }
+#comparisonRight { color: var(--green); }
+#comparisonWrong { color: var(--red); }
+.comparison-question { display: grid; grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1fr); align-items: center; gap: 20px; min-height: 180px; font-size: 44px; font-weight: 800; text-align: center; background: #f0f7fa; padding: 24px 12px; }
+.comparison-question > span { min-width: 0; }
+.comparison-circle { display: grid; place-items: center; width: 76px; height: 76px; border: 3px solid #6d9ba9; border-radius: 50%; background: white; font-size: 46px; }
+.comparison-circle.good { color: var(--green); border-color: var(--green); }
+.comparison-circle.bad { color: var(--red); border-color: var(--red); }
+.comparison-symbols { display: flex; justify-content: center; gap: 20px; margin-top: 30px; }
+.comparison-symbols button { display: grid; justify-items: center; align-content: center; gap: 4px; width: 100px; height: 100px; border: 2px solid #b8cedd; border-radius: 8px; background: white; color: #2457a6; cursor: pointer; font: inherit; }
+.comparison-symbols button:nth-child(2) { color: var(--green); }
+.comparison-symbols button:nth-child(3) { color: #a46e15; }
+.comparison-symbols strong { font-size: 44px; line-height: 1; }
+.comparison-symbols button:hover:not(:disabled), .comparison-symbols button:focus-visible { outline: 3px solid #bcd9f8; outline-offset: 3px; }
+.comparison-symbols button:disabled { cursor: default; }
+.comparison-symbols button.selected { background: #e9f4fb; border-color: currentColor; }
+.comparison-feedback { min-height: 28px; margin: 22px 0 6px; font-size: 20px; font-weight: 700; text-align: center; }
+.comparison-feedback.good { color: var(--green); }
+.comparison-feedback.bad { color: var(--red); }
+.comparison-explanation { min-height: 50px; text-align: center; color: var(--muted); line-height: 1.6; margin: 0 0 16px; }
+@media (max-width: 680px) {
+  .exercise-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 0 8px; }
+  .exercise-tabs button { font-size: 14px; padding: 10px 0; }
+  .comparison-page { padding: 20px 14px; }
+  .comparison-heading h1 { font-size: 22px; }
+  .comparison-question { grid-template-columns: minmax(0, 1fr) 50px minmax(0, 1fr); gap: 8px; font-size: 25px; min-height: 150px; padding: 20px 8px; }
+  .comparison-circle { width: 50px; height: 50px; font-size: 32px; }
+  .comparison-symbols { gap: 12px; }
+  .comparison-symbols button { width: 80px; height: 88px; }
+  .comparison-stats { gap: 16px; }
+}

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>一年级拼音练习</title>
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; color: #253333; background: #eff5f3; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 20px; }
+    button, select { font: inherit; touch-action: manipulation; }
+    button { cursor: pointer; }
+    button:disabled { cursor: default; }
+    button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid #267d93; outline-offset: 3px; }
+    [hidden] { display: none !important; }
+    main { max-width: 940px; margin: auto; background: white; border: 1px solid #d7e3dd; border-radius: 8px; overflow: hidden; }
+    header { padding: 22px 26px; border-bottom: 1px solid #d7e3dd; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    h1 { margin: 0; font-size: 24px; }
+    header p { margin: 5px 0 0; font-size: 14px; color: #627571; }
+    a { color: #267d93; text-decoration: none; font-size: 15px; white-space: nowrap; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid #d7e3dd; }
+    .stats div { text-align: center; padding: 16px 6px; background: #edf7f1; }
+    .stats div:nth-child(2) { background: #edf5fd; }
+    .stats div:nth-child(3) { background: #fff0ef; }
+    .stats div:nth-child(4) { background: #faf5df; }
+    .stats span { display: block; font-size: 14px; color: #536760; margin-bottom: 6px; }
+    .stats strong { font-size: 25px; font-variant-numeric: tabular-nums; }
+    .workspace { padding: 26px; }
+    .modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .modes button { min-height: 48px; border: 1px solid #b7d2c8; border-radius: 6px; color: #35574b; background: white; font-weight: 700; }
+    .modes button[aria-pressed="true"] { background: #23775d; color: white; border-color: #23775d; }
+    .settings { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 20px 0; color: #627571; }
+    select { min-height: 44px; border: 1px solid #cbdad3; padding: 6px 10px; border-radius: 6px; background: white; color: #253333; }
+    .question { border-top: 1px solid #e1e9e5; padding: 26px 0 12px; text-align: center; }
+    .prompt { margin: 0; font-size: 21px; font-weight: 700; }
+    .stem { display: flex; align-items: center; justify-content: center; min-height: 150px; font-size: 70px; line-height: 1.4; font-family: "Arial", "PingFang SC", sans-serif; color: #21596d; margin: 0; }
+    .options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .option { min-height: 78px; border: 2px solid #c4d6d0; border-radius: 8px; background: white; font-size: 25px; font-weight: 700; color: #253333; }
+    .option:hover:not(:disabled) { background: #f1f8f5; border-color: #23775d; }
+    .option.correct { background: #e2f5e9; border-color: #268057; color: #206c49; }
+    .option.wrong { background: #fff0ef; border-color: #c95650; color: #ac403a; }
+    .feedback { min-height: 60px; padding: 16px 0; margin: 0; text-align: center; line-height: 1.6; color: #536760; }
+    .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+    .action { min-height: 46px; padding: 8px 18px; border: 0; border-radius: 6px; background: #23775d; color: white; font-weight: 700; }
+    .action.secondary { background: #eaf1ee; color: #35574b; }
+    .action:disabled { opacity: .5; }
+    .history { border-top: 1px solid #d7e3dd; padding: 22px 26px; }
+    h2 { font-size: 18px; margin: 0 0 14px; }
+    .record { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 0; border-bottom: 1px solid #e1e9e5; font-size: 14px; line-height: 1.7; }
+    .record p { margin: 0; }
+    .empty { color: #627571; font-size: 14px; }
+    dialog { width: min(760px, calc(100% - 24px)); max-height: 85vh; border: 1px solid #cbdad3; border-radius: 8px; padding: 20px; color: #253333; }
+    dialog::backdrop { background: #152e3880; }
+    .dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .dialog-head h2 { margin: 0; }
+    .review-row { padding: 14px 0; border-bottom: 1px solid #e1e9e5; line-height: 1.8; }
+    .review-row p { margin: 0; }
+    .bad { color: #ac403a; } .good { color: #206c49; }
+    .page-tabs { display: flex; gap: 24px; padding: 0 26px; border-bottom: 1px solid #d7e3dd; }
+    .page-tabs button { min-height: 54px; border: 0; border-bottom: 3px solid transparent; background: white; color: #627571; font-weight: 700; }
+    .page-tabs button[aria-selected="true"] { color: #23775d; border-bottom-color: #23775d; }
+    .blend-panel { padding: 26px; }
+    .blend-panel h2 { font-size: 17px; margin: 0 0 12px; color: #536760; }
+    .blend-initials, .blend-finals { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .blend-choice { min-width: 52px; min-height: 50px; padding: 8px 12px; border: 1px solid #b7d2c8; border-radius: 6px; background: white; color: #35574b; font-size: 22px; }
+    .blend-choice[aria-pressed="true"] { background: #23775d; color: white; border-color: #23775d; }
+    .blend-result { padding: 24px 8px; text-align: center; background: #edf5fd; border-top: 1px solid #d5e3ef; border-bottom: 1px solid #d5e3ef; }
+    .blend-formula { display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 16px; font-family: Arial, sans-serif; font-size: 34px; }
+    .blend-formula strong { font-size: 50px; color: #21596d; }
+    .blend-word { display: flex; justify-content: center; align-items: center; gap: 16px; margin: 12px 0; }
+    .blend-word strong { font-size: 60px; font-weight: 500; }
+    .blend-word span { color: #627571; font-size: 16px; }
+    .blend-note { color: #627571; font-size: 14px; line-height: 1.7; text-align: center; }
+    .voice-settings { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin-top: 20px; }
+    .voice-settings select { max-width: 100%; }
+    .blend-status { min-height: 24px; text-align: center; color: #627571; font-size: 14px; line-height: 1.6; }
+    @media (max-width: 600px) { .blend-panel { padding: 18px 14px; } .blend-formula { gap: 10px; font-size: 28px; } .blend-formula strong { font-size: 40px; } .page-tabs { padding: 0 14px; } }
+    @media (max-width: 600px) { body { padding: 8px; padding-bottom: max(12px, env(safe-area-inset-bottom)); } header, .workspace, .history { padding: 18px 14px; } h1 { font-size: 21px; } .modes { gap: 6px; } .modes button { font-size: 14px; padding: 6px 2px; } .stem { font-size: 58px; min-height: 140px; } .option { font-size: 22px; min-height: 72px; } .prompt { font-size: 19px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header><div><h1>拼音练习</h1><p>一年级 · 汉语拼音</p></div><a href="../index.html">数学练习 →</a></header>
+    <nav class="page-tabs" role="tablist" aria-label="拼音学习方式">
+      <button type="button" role="tab" id="blendTab" aria-controls="blendPanel" aria-selected="true">拼读练习</button>
+      <button type="button" role="tab" id="quizTab" aria-controls="quizPanel" aria-selected="false" tabindex="-1">答题练习</button>
+    </nav>
+    <section class="blend-panel" id="blendPanel" role="tabpanel" aria-labelledby="blendTab">
+      <h2>声母</h2><div class="blend-initials" id="blendInitials" role="group" aria-label="选择声母"></div>
+      <h2>带声调韵母</h2><div class="blend-finals" id="blendFinals" role="group" aria-label="选择带声调韵母"></div>
+      <div class="blend-result">
+        <div class="blend-formula" aria-label="拼读组合"><span id="blendInitial">b</span><span>+</span><span id="blendFinal">ā</span><span>=</span><strong id="blendSyllable">bā</strong></div>
+        <div class="blend-word"><strong id="blendCharacter">八</strong><span id="blendTone">第一声</span></div>
+        <p id="blendSpelling" class="blend-note" hidden>j、q、x 与 ü 相拼时，ü 上两点省去。</p>
+        <div class="actions"><button class="action" type="button" id="blendListen">汉字带读</button><button class="action secondary" type="button" id="blendRandom">换一个</button><button class="action secondary" type="button" id="blendStop">停止播放</button></div>
+      </div>
+      <div class="voice-settings"><label for="blendVoice">中文声音</label><select id="blendVoice" aria-label="中文声音"></select><label for="blendRate">语速</label><select id="blendRate"><option value="0.65">慢速</option><option value="0.85" selected>正常</option></select></div>
+      <p class="blend-note">播放对应汉字的系统读音，非标准拼音录音。读音随设备变化，请家长先试听。</p>
+      <p class="blend-status" id="blendStatus" role="status"></p>
+    </section>
+    <div id="quizPanel" role="tabpanel" aria-labelledby="quizTab" hidden>
+    <section class="stats" aria-label="练习统计">
+      <div><span>答对</span><strong id="right">0</strong></div><div><span>进度</span><strong id="progress">0/10</strong></div><div><span>答错</span><strong id="wrong">0</strong></div><div><span>用时</span><strong id="time">00:00</strong></div>
+    </section>
+    <section class="workspace">
+      <div class="modes" role="group" aria-label="练习类型">
+        <button type="button" data-mode="groups" aria-pressed="true">拼音分类</button><button type="button" data-mode="words" aria-pressed="false">看拼音选汉字</button><button type="button" data-mode="tones" aria-pressed="false">声调练习</button>
+      </div>
+      <div class="settings"><label>题数 <select id="length"><option value="10">10题</option><option value="20">20题</option></select></label><span id="sessionLabel">准备开始</span></div>
+      <div class="question"><p class="prompt" id="prompt"></p><p class="stem" id="stem" lang="zh-Latn"></p></div>
+      <div class="options" id="options" aria-label="选择答案"></div>
+      <p class="feedback" id="feedback" role="status"></p>
+      <div class="actions"><button type="button" class="action" id="start">开始练习</button><button type="button" class="action secondary" id="next" disabled>下一题</button><button type="button" class="action secondary" id="finish" disabled>结束</button><button type="button" class="action secondary" id="details" hidden>本次详情</button></div>
+    </section>
+    <section class="history"><h2>最近10次成绩</h2><div id="history"></div></section>
+    </div>
+  </main>
+  <dialog id="detailDialog" aria-labelledby="detailTitle"><div class="dialog-head"><h2 id="detailTitle">答题详情</h2><form method="dialog"><button class="action secondary" type="submit">关闭</button></form></div><p id="summary"></p><button class="action" type="button" id="retry">错题重做</button><div id="rows"></div></dialog>
+  <script>
+    const groups = {
+      "声母": "b p m f d t n l g k h j q x zh ch sh r z c s y w".split(" "),
+      "韵母": "a o e i u ü ai ei ui ao ou iu ie üe er an en in un ün ang eng ing ong".split(" "),
+      "整体认读音节": "zhi chi shi ri zi ci si yi wu yu ye yue yuan yin yun ying".split(" ")
+    };
+    const words = [
+      ["山","shān",1],["水","shuǐ",3],["火","huǒ",3],["日","rì",4],["月","yuè",4],["木","mù",4],
+      ["人","rén",2],["口","kǒu",3],["手","shǒu",3],["目","mù",4],["耳","ěr",3],["足","zú",2],
+      ["天","tiān",1],["田","tián",2],["土","tǔ",3],["禾","hé",2],["米","mǐ",3],["石","shí",2],
+      ["云","yún",2],["雨","yǔ",3],["风","fēng",1],["花","huā",1],["鸟","niǎo",3],["鱼","yú",2],
+      ["牛","niú",2],["羊","yáng",2],["马","mǎ",3],["大","dà",4],["小","xiǎo",3],["上","shàng",4],
+      ["下","xià",4],["左","zuǒ",3],["右","yòu",4],["多","duō",1],["少","shǎo",3],["白","bái",2],
+      ["红","hóng",2],["绿","lǜ",4],["书","shū",1],["车","chē",1]
+    ];
+    const names = { groups: "拼音分类", words: "看拼音选汉字", tones: "声调练习" };
+    const toneNames = ["第一声", "第二声", "第三声", "第四声"];
+    const $ = (id) => document.getElementById(id);
+    const state = { mode: "groups", running: false, answered: false, queue: [], index: 0, attempts: [], right: 0, wrong: 0, started: 0, timer: null, next: null, review: false };
+    const storageKey = "chinesePinyinHistory.v1";
+    let records = readRecords(), latest = null, viewed = null;
+    function readRecords() { try { const data = JSON.parse(localStorage.getItem(storageKey)); return Array.isArray(data) ? data.slice(0, 10) : []; } catch { return []; } }
+    function shuffle(items) { const result = [...items]; for (let i = result.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [result[i], result[j]] = [result[j], result[i]]; } return result; }
+    function timeText(ms) { const seconds = Math.floor(ms / 1000); return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`; }
+    function bank(mode) {
+      if (mode === "groups") return Object.entries(groups).flatMap(([answer, items]) => items.map(stem => ({ stem, answer, prompt: "它属于哪一类？", options: Object.keys(groups), explanation: `${stem} 属于${answer}。` })));
+      if (mode === "tones") return words.map(([character, stem, tone]) => ({ stem, answer: toneNames[tone - 1], prompt: "这是第几声？", options: toneNames, explanation: `${stem} 是${toneNames[tone - 1]}。` }));
+      const pronunciations = new Set();
+      return shuffle(words).filter((item) => { if (pronunciations.has(item[1])) return false; pronunciations.add(item[1]); return true; }).map(([answer, stem]) => ({ stem, answer, prompt: "哪个汉字读这个拼音？", options: shuffle([answer, ...shuffle(words.filter(item => item[1] !== stem)).slice(0, 3).map(item => item[0])]), explanation: `${answer} 读 ${stem}。` }));
+    }
+    function stats() { $("right").textContent = state.right; $("wrong").textContent = state.wrong; $("progress").textContent = `${state.attempts.length}/${state.queue.length || Number($("length").value)}`; }
+    function renderQuestion() {
+      clearTimeout(state.next);
+      const q = state.queue[state.index];
+      state.answered = false;
+      $("prompt").textContent = q.prompt; $("stem").textContent = q.stem;
+      $("feedback").textContent = ""; $("next").disabled = true;
+      $("options").replaceChildren();
+      shuffle(q.options).forEach(answer => {
+        const button = document.createElement("button"); button.type = "button"; button.className = "option"; button.textContent = answer; button.disabled = !state.running;
+        button.addEventListener("click", () => submit(answer, button)); $("options").appendChild(button);
+      });
+      $("sessionLabel").textContent = state.running ? `${state.review ? "错题重做" : names[state.mode]} · 第${state.index + 1}题` : "准备开始";
+    }
+    function submit(answer, button) {
+      if (!state.running || state.answered) return;
+      state.answered = true;
+      const q = state.queue[state.index], correct = answer === q.answer;
+      state[correct ? "right" : "wrong"]++;
+      state.attempts.push({ ...q, selected: answer, correct });
+      $("options").querySelectorAll("button").forEach(item => { item.disabled = true; if (item.textContent === q.answer) item.classList.add("correct"); });
+      button.classList.add(correct ? "correct" : "wrong");
+      $("feedback").textContent = `${correct ? "答对了！" : "再记一记："}${q.explanation}`;
+      stats();
+      if (state.index + 1 === state.queue.length) { finish(); return; }
+      $("next").disabled = false;
+      if (correct) state.next = setTimeout(nextQuestion, 1000);
+    }
+    function nextQuestion() { if (!state.running || !state.answered) return; state.index++; renderQuestion(); }
+    function prepare() {
+      clearTimeout(state.next); clearInterval(state.timer); state.running = false; state.review = false; state.attempts = []; state.right = 0; state.wrong = 0; state.index = 0;
+      state.queue = shuffle(bank(state.mode)).slice(0, Number($("length").value));
+      $("time").textContent = "00:00"; $("details").hidden = true; $("start").disabled = false; $("finish").disabled = true;
+      stats(); renderQuestion();
+    }
+    function begin(queue = null) {
+      prepare(); if (queue) { state.queue = queue.map(item => ({ stem: item.stem, answer: item.answer, prompt: item.prompt, options: [...item.options], explanation: item.explanation })); state.review = true; }
+      state.running = true; state.started = Date.now(); $("start").disabled = true; $("finish").disabled = false;
+      state.timer = setInterval(() => $("time").textContent = timeText(Date.now() - state.started), 250);
+      stats(); renderQuestion();
+    }
+    function finish() {
+      if (!state.running) return;
+      state.running = false; clearInterval(state.timer); clearTimeout(state.next);
+      const elapsed = timeText(Date.now() - state.started); $("time").textContent = elapsed;
+      $("options").querySelectorAll("button").forEach(item => item.disabled = true);
+      $("start").disabled = false; $("finish").disabled = true; $("next").disabled = true; $("details").hidden = false;
+      $("sessionLabel").textContent = "练习结束";
+      latest = { mode: state.mode, label: `${names[state.mode]}${state.review ? " · 错题重做" : ""}`, date: new Date().toLocaleString("zh-CN"), right: state.right, wrong: state.wrong, elapsed, attempts: state.attempts.slice() };
+      records.unshift(latest); records = records.slice(0, 10);
+      try { localStorage.setItem(storageKey, JSON.stringify(records)); } catch { $("feedback").textContent += " 当前浏览器无法保存成绩，关闭页面后可能丢失。"; }
+      renderRecords(); showDetails(latest);
+    }
+    function renderRecords() {
+      $("history").replaceChildren();
+      if (!records.length) { const p = document.createElement("p"); p.className = "empty"; p.textContent = "暂无成绩"; $("history").appendChild(p); }
+      records.forEach(record => {
+        const row = document.createElement("div"); row.className = "record";
+        const text = document.createElement("p"); text.textContent = `${record.label} · ${record.date}　答对${record.right}题 / 答错${record.wrong}题　用时${record.elapsed}`;
+        const button = document.createElement("button"); button.type = "button"; button.className = "action secondary"; button.textContent = "查看详情"; button.addEventListener("click", () => showDetails(record));
+        row.append(text, button); $("history").appendChild(row);
+      });
+    }
+    function showDetails(record) {
+      viewed = record; $("summary").textContent = `${record.label} · 答对${record.right}题 · 答错${record.wrong}题 · 用时${record.elapsed}`;
+      const wrong = record.attempts.filter(item => !item.correct); $("retry").disabled = wrong.length === 0; $("retry").textContent = wrong.length ? `错题重做（${wrong.length}题）` : "全部答对，无需重做";
+      $("rows").replaceChildren();
+      record.attempts.forEach((item, index) => {
+        const row = document.createElement("div"); row.className = "review-row";
+        const title = document.createElement("p"); title.textContent = `${index + 1}. ${item.stem} · ${item.prompt}`;
+        const answer = document.createElement("p"); answer.className = item.correct ? "good" : "bad"; answer.textContent = `填写：${item.selected}　正确：${item.answer}　${item.correct ? "正确" : "错误"}`;
+        row.append(title, answer); $("rows").appendChild(row);
+      });
+      if (!record.attempts.length) $("rows").textContent = "本次没有提交答案";
+      if (!$("detailDialog").open) $("detailDialog").showModal();
+    }
+    document.querySelectorAll("[data-mode]").forEach(button => button.addEventListener("click", () => {
+      state.mode = button.dataset.mode;
+      document.querySelectorAll("[data-mode]").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
+      prepare();
+    }));
+    $("length").addEventListener("change", prepare); $("start").addEventListener("click", () => begin()); $("next").addEventListener("click", nextQuestion); $("finish").addEventListener("click", finish); $("details").addEventListener("click", () => showDetails(latest));
+    $("retry").addEventListener("click", () => { const wrong = viewed.attempts.filter(item => !item.correct); if (!wrong.length) return; state.mode = viewed.mode; document.querySelectorAll("[data-mode]").forEach(item => item.setAttribute("aria-pressed", String(item.dataset.mode === state.mode))); $("detailDialog").close(); begin(wrong); });
+    renderRecords(); prepare();
+    const blends = [
+      ["b","ā","bā","八",1],["b","á","bá","拔",2],["b","ǎ","bǎ","把",3],["b","à","bà","爸",4],["b","ǐ","bǐ","笔",3],
+      ["p","ā","pā","趴",1],["p","á","pá","爬",2],["p","à","pà","怕",4],["p","í","pí","皮",2],
+      ["m","ā","mā","妈",1],["m","á","má","麻",2],["m","ǎ","mǎ","马",3],["m","à","mà","骂",4],["m","ǐ","mǐ","米",3],
+      ["f","ā","fā","发",1],["f","á","fá","罚",2],["f","ǎ","fǎ","法",3],["f","ēi","fēi","飞",1],
+      ["d","ā","dā","搭",1],["d","ǎ","dǎ","打",3],["d","à","dà","大",4],["d","ī","dī","低",1],
+      ["t","ā","tā","他",1],["t","ǎ","tǎ","塔",3],["t","ù","tù","兔",4],["t","í","tí","题",2],
+      ["n","á","ná","拿",2],["n","ǎ","nǎ","哪",3],["n","ǐ","nǐ","你",3],["n","ǚ","nǚ","女",3],
+      ["l","ā","lā","拉",1],["l","í","lí","梨",2],["l","ǐ","lǐ","李",3],["l","ǜ","lǜ","绿",4],
+      ["g","ē","gē","哥",1],["g","ǒu","gǒu","狗",3],["g","ǔ","gǔ","古",3],
+      ["k","ē","kē","科",1],["k","ǒu","kǒu","口",3],["k","ǔ","kǔ","苦",3],
+      ["h","ē","hē","喝",1],["h","é","hé","河",2],["h","ǔ","hǔ","虎",3],
+      ["j","ī","jī","鸡",1],["j","ǐ","jǐ","几",3],["j","ǖ","jū","居",1],
+      ["q","ī","qī","七",1],["q","í","qí","旗",2],["q","ǖ","qū","区",1],
+      ["x","ī","xī","西",1],["x","ǐ","xǐ","洗",3],["x","ǖ","xū","需",1],
+      ["zh","ū","zhū","猪",1],["zh","ú","zhú","竹",2],["zh","ǔ","zhǔ","主",3],
+      ["ch","ē","chē","车",1],["ch","á","chá","茶",2],["ch","ǐ","chǐ","尺",3],
+      ["sh","ū","shū","书",1],["sh","é","shé","蛇",2],["sh","ǒu","shǒu","手",3],
+      ["r","ì","rì","日",4],["r","ě","rě","惹",3],
+      ["z","ǎo","zǎo","早",3],["z","ǒu","zǒu","走",3],
+      ["c","ǎo","cǎo","草",3],["c","ū","cū","粗",1],
+      ["s","ān","sān","三",1],["s","ì","sì","四",4]
+    ];
+    let selectedBlend = blends[0], chineseVoices = [], spoken = null, speechVersion = 0, pausedAt = null;
+    const synth = window.speechSynthesis;
+    function stopBlendSpeech() { speechVersion++; if (synth) synth.cancel(); spoken = null; $("blendListen").disabled = !synth; }
+    function renderBlend() {
+      stopBlendSpeech();
+      const [initial, final, syllable, character, tone] = selectedBlend;
+      $("blendInitial").textContent = initial; $("blendFinal").textContent = final; $("blendSyllable").textContent = syllable; $("blendCharacter").textContent = character; $("blendTone").textContent = toneNames[tone - 1];
+      $("blendSpelling").hidden = !["j", "q", "x"].includes(initial) || !final.includes("ü");
+      $("blendStatus").textContent = synth ? "" : "当前浏览器不支持语音播放，可继续拼读练习。";
+      $("blendInitials").replaceChildren();
+      [...new Set(blends.map(item => item[0]))].forEach(value => {
+        const button = document.createElement("button"); button.type = "button"; button.className = "blend-choice"; button.textContent = value; button.setAttribute("aria-pressed", String(value === initial));
+        button.addEventListener("click", () => { selectedBlend = blends.find(item => item[0] === value); renderBlend(); }); $("blendInitials").appendChild(button);
+      });
+      $("blendFinals").replaceChildren();
+      blends.filter(item => item[0] === initial).forEach(item => {
+        const button = document.createElement("button"); button.type = "button"; button.className = "blend-choice"; button.textContent = item[1]; button.setAttribute("aria-pressed", String(item === selectedBlend));
+        button.addEventListener("click", () => { selectedBlend = item; renderBlend(); }); $("blendFinals").appendChild(button);
+      });
+    }
+    function loadChineseVoices() {
+      const oldVoice = $("blendVoice").value;
+      chineseVoices = synth ? synth.getVoices().filter(voice => /^zh(?:-|_)/i.test(voice.lang) && !/yue|HK|TW/i.test(voice.lang)) : [];
+      $("blendVoice").replaceChildren();
+      const automatic = document.createElement("option"); automatic.value = ""; automatic.textContent = "系统普通话"; $("blendVoice").appendChild(automatic);
+      chineseVoices.forEach(voice => { const option = document.createElement("option"); option.value = voice.voiceURI; option.textContent = voice.name; $("blendVoice").appendChild(option); });
+      if (chineseVoices.some(voice => voice.voiceURI === oldVoice)) $("blendVoice").value = oldVoice;
+    }
+    $("blendListen").addEventListener("click", () => {
+      if (!synth || typeof window.SpeechSynthesisUtterance !== "function") return;
+      stopBlendSpeech(); loadChineseVoices();
+      const voice = chineseVoices.find(item => item.voiceURI === $("blendVoice").value) || chineseVoices.find(item => /^zh[-_]CN$/i.test(item.lang)) || chineseVoices[0];
+      if (!voice) { $("blendStatus").textContent = "暂未找到普通话声音，请检查设备中文语音设置后重试。"; return; }
+      const version = speechVersion;
+      spoken = new window.SpeechSynthesisUtterance(selectedBlend[3]);
+      spoken.lang = "zh-CN"; spoken.voice = voice; spoken.rate = Number($("blendRate").value); spoken.pitch = 1;
+      spoken.onstart = () => { if (version === speechVersion) $("blendStatus").textContent = `正在带读：${selectedBlend[3]}`; };
+      spoken.onend = () => { if (version === speechVersion) { $("blendStatus").textContent = "请跟着读一读"; $("blendListen").disabled = false; spoken = null; } };
+      spoken.onerror = () => { if (version === speechVersion) { $("blendStatus").textContent = "播放未完成，请检查音量或稍后重试。"; $("blendListen").disabled = false; spoken = null; } };
+      $("blendListen").disabled = true;
+      try { synth.speak(spoken); } catch { $("blendStatus").textContent = "当前声音无法播放，请换一个声音重试。"; $("blendListen").disabled = false; }
+    });
+    $("blendRandom").addEventListener("click", () => { selectedBlend = shuffle(blends.filter(item => item !== selectedBlend))[0]; renderBlend(); });
+    $("blendStop").addEventListener("click", () => { stopBlendSpeech(); $("blendStatus").textContent = "已停止播放"; });
+    function selectLearningPage(page) {
+      stopBlendSpeech();
+      const quiz = page === "quiz";
+      if (!quiz && state.running && pausedAt === null) { pausedAt = Date.now(); clearInterval(state.timer); clearTimeout(state.next); }
+      if (quiz && pausedAt !== null) {
+        if (state.running) { state.started += Date.now() - pausedAt; state.timer = setInterval(() => $("time").textContent = timeText(Date.now() - state.started), 250); if (state.answered && state.attempts.at(-1)?.correct) state.next = setTimeout(nextQuestion, 1000); }
+        pausedAt = null;
+      }
+      $("blendPanel").hidden = quiz; $("quizPanel").hidden = !quiz;
+      ["blend", "quiz"].forEach(name => { $(name + "Tab").setAttribute("aria-selected", String(name === page)); $(name + "Tab").tabIndex = name === page ? 0 : -1; });
+    }
+    ["blend", "quiz"].forEach(name => {
+      $(name + "Tab").addEventListener("click", () => selectLearningPage(name));
+      $(name + "Tab").addEventListener("keydown", event => { if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return; event.preventDefault(); const next = event.key === "Home" ? "blend" : event.key === "End" ? "quiz" : name === "blend" ? "quiz" : "blend"; selectLearningPage(next); $(next + "Tab").focus(); });
+    });
+    if (synth) synth.addEventListener("voiceschanged", loadChineseVoices);
+    window.addEventListener("pagehide", stopBlendSpeech);
+    loadChineseVoices(); renderBlend();
+  </script>
+</body>
+</html>
