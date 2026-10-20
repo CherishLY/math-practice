@@ -1,4 +1,4 @@
-const comparisonState = { mode: "numbers", left: null, right: null, symbol: "", answered: false, correct: 0, wrong: 0, nextQuestionId: null };
+const comparisonState = { mode: "numbers", maxNumber: 20, left: null, right: null, symbol: "", answered: false, correct: 0, wrong: 0, nextQuestionId: null };
 const comparisonNames = { ">": "大于", "<": "小于", "=": "等于" };
 const comparisonCircle = document.querySelector("#comparisonCircle");
 const comparisonFeedback = document.querySelector("#comparisonFeedback");
@@ -10,7 +10,7 @@ function comparisonSide(value, expression) {
     const first = randomInt(1, value - 1);
     return { text: `${first} + ${value - first}`, value };
   }
-  const first = randomInt(value, 20);
+  const first = randomInt(value, comparisonState.maxNumber);
   return { text: `${first} - ${first - value}`, value };
 }
 
@@ -21,13 +21,13 @@ function newComparisonQuestion() {
   let leftValue;
   let rightValue;
   if (relation === 0) {
-    leftValue = randomInt(1, 20);
+    leftValue = randomInt(1, comparisonState.maxNumber);
     rightValue = randomInt(0, leftValue - 1);
   } else if (relation === 1) {
-    rightValue = randomInt(1, 20);
+    rightValue = randomInt(1, comparisonState.maxNumber);
     leftValue = randomInt(0, rightValue - 1);
   } else {
-    leftValue = rightValue = randomInt(0, 20);
+    leftValue = rightValue = randomInt(0, comparisonState.maxNumber);
   }
   const expressionOnLeft = comparisonState.mode === "both" || (comparisonState.mode === "expression" && Math.random() < 0.5);
   const expressionOnRight = comparisonState.mode === "both" || (comparisonState.mode === "expression" && !expressionOnLeft);
@@ -89,6 +89,17 @@ document.querySelectorAll("[data-comparison-mode]").forEach((button) => {
       item.classList.toggle("active", item === button);
       item.setAttribute("aria-pressed", String(item === button));
     });
+    newComparisonQuestion();
+  });
+});
+document.querySelectorAll("[data-comparison-range]").forEach((button) => {
+  button.addEventListener("click", () => {
+    comparisonState.maxNumber = Number(button.dataset.comparisonRange);
+    document.querySelectorAll("[data-comparison-range]").forEach((item) => {
+      item.classList.toggle("active", item === button);
+      item.setAttribute("aria-pressed", String(item === button));
+    });
+    document.querySelector("#comparisonRangeLabel").textContent = `${comparisonState.maxNumber}以内的大小比较`;
     newComparisonQuestion();
   });
 });
