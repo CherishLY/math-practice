@@ -209,9 +209,10 @@
     }
 
     function updateQuestionProgress() {
-      document.querySelector("#questionProgress").hidden = state.trainingMode !== "hundred";
+      document.querySelector("#questionProgress").hidden = false;
+      document.querySelector("#questionTimeLabel").textContent = state.trainingMode === "timed" ? "剩余时间" : "已用时间";
       document.querySelector("#questionElapsed").textContent = timerEl.textContent;
-      document.querySelector("#questionCompleted").textContent = `${state.total}/100`;
+      document.querySelector("#questionCompleted").textContent = state.trainingMode === "timed" ? `已答${state.total}题` : `${state.total}/${state.trainingMode === "review" ? state.reviewQueue.length : 100}`;
       document.querySelector("#questionPaused").hidden = !state.running || !state.paused;
     }
 
@@ -244,6 +245,7 @@
       }
       const remaining = Math.max(0, duration - arithmeticElapsed());
       timerEl.textContent = formatTime(Math.ceil(remaining / 1000) * 1000);
+      updateQuestionProgress();
       if (remaining === 0) finishGame();
     }
 

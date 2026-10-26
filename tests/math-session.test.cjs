@@ -151,7 +151,7 @@ test('composition review does not consume a history slot', () => {
 
 test('100-question progress below the question follows answers, pause, reset, and completion', () => {
   const s = createSession();
-  assert.equal(s.get('questionProgress').hidden, true);
+  assert.equal(s.get('questionProgress').hidden, false);
   s.run("setTrainingMode('hundred');startGame()");
   assert.equal(s.get('questionProgress').hidden, false);
   assert.equal(s.get('questionCompleted').textContent, '0/100');
@@ -178,7 +178,30 @@ test('100-question progress below the question follows answers, pause, reset, an
   assert.equal(s.get('questionElapsed').textContent, '00:00');
   assert.equal(s.get('questionCompleted').textContent, '0/100');
   s.run("setTrainingMode('timed')");
-  assert.equal(s.get('questionProgress').hidden, true);
+  assert.equal(s.get('questionProgress').hidden, false);
+  assert.equal(s.get('questionTimeLabel').textContent, '剩余时间');
+});
+
+test('10-minute mode shows remaining time and answered count below the question', () => {
+  const s = createSession();
+  s.run('startGame()');
+  assert.equal(s.get('questionElapsed').textContent, '10:00');
+  assert.equal(s.get('questionCompleted').textContent, '已答0题');
+  s.advance(15000);
+  s.run('updateCountdown();submitAnswer(state.answer)');
+  assert.equal(s.get('questionElapsed').textContent, '09:45');
+  assert.equal(s.get('questionCompleted').textContent, '已答1题');
+  s.run('toggleArithmeticPause()');
+  s.advance(60000);
+  s.run('updateCountdown()');
+  assert.equal(s.get('questionElapsed').textContent, '09:45');
+  assert.equal(s.get('questionPaused').hidden, false);
+  s.run('toggleArithmeticPause()');
+  s.advance(585000);
+  s.run('updateCountdown()');
+  assert.equal(s.get('questionElapsed').textContent, '00:00');
+  assert.equal(s.get('questionCompleted').textContent, '已答1题');
+  assert.equal(s.run('state.running'), false);
 });
 
 test('ending without a submitted answer does not save or displace arithmetic history', () => {
