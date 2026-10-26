@@ -239,6 +239,9 @@
     .answer-control { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .answer-form { margin-bottom: 20px; }
     .answer-form .formula { margin-bottom: 14px; }
+    .question-progress { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px 24px; margin: 0 0 16px; color: var(--muted); font-size: 16px; line-height: 1.6; }
+    .question-progress strong { color: var(--green); margin-left: 6px; font-variant-numeric: tabular-nums; }
+    #questionPaused { color: #9b6817; font-weight: 700; }
     button, input { touch-action: manipulation; }
     button:disabled { opacity: 0.6; cursor: default; }
 

@@ -3,6 +3,7 @@
     const formulaTextEl = document.querySelector("#formulaText");
     const formulaPrefixEl = document.querySelector("#formulaPrefix");
     const startButton = document.querySelector("#startButton");
+    const pauseButton = document.querySelector("#pauseButton");
     const duration = 10 * 60 * 1000;
     const timedButton = document.querySelector("#timedButton");
     const hundredButton = document.querySelector("#hundredButton");
@@ -95,6 +96,7 @@
       answered: false,
       finished: false,
       running: false,
+      paused: false,
       recordSaved: false,
       startedAt: Date.now(),
       timerId: null,
@@ -182,7 +184,7 @@
 
       document.querySelectorAll(".choice").forEach((button) => {
         button.classList.remove("correct", "wrong");
-        button.disabled = !state.running;
+        button.disabled = !state.running || state.paused;
       });
     }
 
@@ -203,6 +205,14 @@
       rightCountEl.textContent = state.right;
       wrongCountEl.textContent = state.wrong;
       totalCountEl.textContent = state.trainingMode === "review" ? `${state.total}/${state.reviewQueue.length}` : state.trainingMode === "hundred" ? `${state.total}/100` : state.total;
+      updateQuestionProgress();
+    }
+
+    function updateQuestionProgress() {
+      document.querySelector("#questionProgress").hidden = state.trainingMode !== "hundred";
+      document.querySelector("#questionElapsed").textContent = timerEl.textContent;
+      document.querySelector("#questionCompleted").textContent = `${state.total}/100`;
+      document.querySelector("#questionPaused").hidden = !state.running || !state.paused;
     }
 
     function formatTime(milliseconds) {
@@ -217,19 +227,72 @@
       state.startedAt = Date.now();
       state.finished = false;
       state.running = true;
+      state.paused = false;
+      arithmeticPausedAt = null;
+      syncArithmeticPause();
       timerEl.textContent = state.trainingMode !== "timed" ? "00:00" : "10:00";
+      updateQuestionProgress();
       state.timerId = setInterval(updateCountdown, 200);
     }
 
     function updateCountdown() {
-      if (!state.running || activePage !== "arithmetic") return;
+      if (!state.running || state.paused || activePage !== "arithmetic") return;
       if (state.trainingMode !== "timed") {
-        timerEl.textContent = formatTime(Date.now() - state.startedAt);
+        timerEl.textContent = formatTime(arithmeticElapsed());
+        updateQuestionProgress();
         return;
       }
-      const remaining = Math.max(0, duration - (Date.now() - state.startedAt));
+      const remaining = Math.max(0, duration - arithmeticElapsed());
       timerEl.textContent = formatTime(Math.ceil(remaining / 1000) * 1000);
       if (remaining === 0) finishGame();
+    }
+
+    function arithmeticElapsed() {
+      return Math.max(0, (arithmeticPausedAt === null ? Date.now() : arithmeticPausedAt) - state.startedAt);
+    }
+
+    function scheduleArithmeticNext() {
+      clearTimeout(state.nextQuestionId);
+      if (!state.running || state.paused || activePage !== "arithmetic" || !state.answered) return;
+      state.nextQuestionId = setTimeout(() => {
+        updateCountdown();
+        if (state.running && !state.paused && activePage === "arithmetic") makeQuestion();
+      }, 800);
+    }
+
+    function syncArithmeticPause() {
+      const shouldPause = state.running && (state.paused || activePage !== "arithmetic");
+      if (shouldPause && arithmeticPausedAt === null) {
+        arithmeticPausedAt = Date.now();
+        clearTimeout(state.nextQuestionId);
+      } else if (!shouldPause && arithmeticPausedAt !== null && state.running) {
+        state.startedAt += Date.now() - arithmeticPausedAt;
+        arithmeticPausedAt = null;
+        scheduleArithmeticNext();
+      }
+      pauseButton.disabled = !state.running;
+      pauseButton.textContent = state.paused ? "继续" : "暂停";
+      pauseButton.setAttribute("aria-pressed", String(state.paused));
+      document.querySelectorAll(".choice").forEach(button => {
+        button.disabled = !state.running || shouldPause || state.answered;
+      });
+      if (state.paused) {
+        messageEl.textContent = "已暂停";
+        messageEl.className = "message";
+      }
+      updateQuestionProgress();
+    }
+
+    function toggleArithmeticPause() {
+      if (!state.running) return;
+      updateCountdown();
+      if (!state.running) return;
+      state.paused = !state.paused;
+      syncArithmeticPause();
+      if (!state.paused) {
+        messageEl.textContent = state.answered ? "即将进入下一题" : "";
+        updateCountdown();
+      }
     }
 
     function markWrongChoice(selected) {
@@ -241,10 +304,10 @@
     }
 
     function submitAnswer(selected) {
-      if (!state.running || state.finished || state.answered || !Number.isInteger(selected)) {
+      if (!state.running || state.paused || activePage !== "arithmetic" || state.finished || state.answered || !Number.isInteger(selected)) {
         return;
       }
-      if (state.trainingMode === "timed" && Date.now() - state.startedAt >= duration) {
+      if (state.trainingMode === "timed" && arithmeticElapsed() >= duration) {
         finishGame();
         return;
       }
@@ -301,10 +364,7 @@
         finishGame();
         return;
       }
-      state.nextQuestionId = setTimeout(() => {
-        updateCountdown();
-        if (state.running) makeQuestion();
-      }, 800);
+      scheduleArithmeticNext();
     }
 
     function chooseAnswer(event) {
@@ -317,7 +377,7 @@
     }
 
     function appendArithmeticDigit(digit) {
-      if (activePage !== "arithmetic" || !state.running || state.answered) return;
+      if (activePage !== "arithmetic" || !state.running || state.paused || state.answered) return;
       if (!/^\d$/.test(digit)) return;
       state.typedAnswer += digit;
       answerSlotEl.value = state.typedAnswer;
@@ -331,6 +391,9 @@
       clearTimeout(state.nextQuestionId);
       clearInterval(state.timerId);
       state.running = false;
+      state.paused = false;
+      arithmeticPausedAt = null;
+      syncArithmeticPause();
       state.finished = false;
       state.right = 0;
       state.wrong = 0;
@@ -341,6 +404,7 @@
       finishButton.classList.remove("active");
       updateStats();
       timerEl.textContent = state.trainingMode !== "timed" ? "00:00" : "10:00";
+      updateQuestionProgress();
       document.querySelector("#totalLabel").textContent = state.trainingMode === "review" ? "错题重做进度" : "已答题数";
       document.querySelector("#timerLabel").textContent = state.trainingMode !== "timed" ? "总用时" : "剩余时间";
       startButton.disabled = false;
@@ -364,7 +428,7 @@
     function handleKeyboard(event) {
       if (activePage !== "arithmetic" || detailsDialog.open) return;
       if (event.target && event.target !== answerSlotEl && (event.target.matches("input, textarea, select") || event.target.isContentEditable)) return;
-      if (!state.running || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+      if (!state.running || state.paused || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
       if (!/^\d$/.test(event.key) && !["Enter", "Backspace", "Escape"].includes(event.key)) return;
       event.preventDefault();
       updateCountdown();
@@ -512,9 +576,11 @@
         rate: rightPerMinute.toFixed(1),
         attempts: state.attempts.slice()
       };
-      records.unshift(latestRecord);
-      saveHistory(records);
-      renderHistory();
+      if (state.trainingMode !== "review" && state.attempts.length > 0) {
+        records.unshift(latestRecord);
+        saveHistory(records);
+        renderHistory();
+      }
     }
 
     function showDetails(record) {
@@ -561,13 +627,18 @@
       document.querySelectorAll(".choice").forEach((choice) => {
         choice.disabled = true;
       });
-      const elapsedMilliseconds = state.trainingMode !== "timed" ? Date.now() - state.startedAt : Math.min(duration, Date.now() - state.startedAt);
+      const elapsedMilliseconds = state.trainingMode !== "timed" ? arithmeticElapsed() : Math.min(duration, arithmeticElapsed());
       timerEl.textContent = state.trainingMode !== "timed" ? formatTime(elapsedMilliseconds) : formatTime(Math.ceil((duration - elapsedMilliseconds) / 1000) * 1000);
       startButton.disabled = false;
       finishButton.disabled = true;
       nextButton.disabled = true;
       answerSlotEl.readOnly = true;
       answerSlotEl.blur();
+      state.paused = false;
+      pauseButton.disabled = true;
+      pauseButton.textContent = "暂停";
+      pauseButton.setAttribute("aria-pressed", "false");
+      updateQuestionProgress();
       const elapsedMinutes = Math.max(elapsedMilliseconds / 60000, 1 / 60);
       const rightPerMinute = state.right / elapsedMinutes;
       addHistoryRecord(elapsedMilliseconds, rightPerMinute);
@@ -587,6 +658,7 @@
     chainSubButton.addEventListener("click", () => setOperation("chainSub"));
     finishButton.addEventListener("click", finishGame);
     startButton.addEventListener("click", startGame);
+    pauseButton.addEventListener("click", toggleArithmeticPause);
     timedButton.addEventListener("click", () => setTrainingMode("timed"));
     hundredButton.addEventListener("click", () => setTrainingMode("hundred"));
     specialtyPanel.addEventListener("click", (event) => {

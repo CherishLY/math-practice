@@ -9,15 +9,11 @@ function switchExercise(page) {
   if (page === activePage) return;
   if (activePage === "arithmetic" && state.running) {
     updateCountdown();
-    if (state.running) arithmeticPausedAt = Date.now();
   }
   activePage = page;
   document.querySelector("#arithmeticStats").hidden = page !== "arithmetic";
   document.querySelector("#summaryBar").classList.toggle("stars-only", page !== "arithmetic");
-  if (page === "arithmetic" && arithmeticPausedAt !== null) {
-    if (state.running) state.startedAt += Date.now() - arithmeticPausedAt;
-    arithmeticPausedAt = null;
-  }
+  syncArithmeticPause();
   for (const name of exercisePages) {
     const selected = name === page;
     document.querySelector(`#${name}Page`).hidden = !selected;

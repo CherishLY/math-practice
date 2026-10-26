@@ -80,10 +80,12 @@ function finishComposition() {
   compositionElement("compositionKeypad").querySelectorAll("button").forEach(button => button.disabled = true);
   compositionElement("compositionSession").textContent = "练习结束";
   compositionElement("compositionFeedback").textContent = `本次完成${composition.attempts.length}题，答对${composition.right}题，答错${composition.wrong}题。`;
-  compositionRecords.unshift({ selection: composition.selection, label: `${composition.selection ? `${composition.selection}的组成` : "1–9混合"}${composition.retry ? " · 错题重做" : ""}`, date: new Date().toLocaleString("zh-CN"), right: composition.right, wrong: composition.wrong, attempts: composition.attempts.slice() });
-  compositionRecords = compositionRecords.slice(0, 10);
-  try { localStorage.setItem(compositionStorageKey, JSON.stringify(compositionRecords)); } catch { compositionElement("compositionFeedback").textContent += " 本次成绩无法保存到本地。"; }
-  renderCompositionHistory();
+  if (!composition.retry && composition.attempts.length > 0) {
+    compositionRecords.unshift({ selection: composition.selection, label: composition.selection ? `${composition.selection}的组成` : "1–9混合", date: new Date().toLocaleString("zh-CN"), right: composition.right, wrong: composition.wrong, attempts: composition.attempts.slice() });
+    compositionRecords = compositionRecords.slice(0, 10);
+    try { localStorage.setItem(compositionStorageKey, JSON.stringify(compositionRecords)); } catch { compositionElement("compositionFeedback").textContent += " 本次成绩无法保存到本地。"; }
+    renderCompositionHistory();
+  }
 }
 function renderCompositionHistory() {
   const list = compositionElement("compositionHistory"); list.replaceChildren();
