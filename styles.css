@@ -389,7 +389,10 @@
       border: 1px solid #bed0e8;
       background: #ffffff;
       color: var(--ink);
-      border-radius: 8px;
+      border-radius: 50%;
+      width: min(64px, 100%);
+      padding: 0;
+      justify-self: center;
       aspect-ratio: 1;
       min-width: 0;
       font: inherit;
@@ -637,7 +640,7 @@
     .composition-part.good { border-color: var(--green); color: var(--green); }
     .composition-part.bad { border-color: var(--red); color: var(--red); }
     .composition-keypad { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 24px 0 0; }
-    .composition-keypad button { min-height: 56px; border: 1px solid #bed0e8; border-radius: 6px; background: white; color: var(--ink); font: inherit; font-size: 26px; font-weight: 800; cursor: pointer; }
+    .composition-keypad button { width: min(64px, 100%); aspect-ratio: 1; min-height: 0; padding: 0; justify-self: center; border: 1px solid #bed0e8; border-radius: 50%; background: white; color: var(--ink); font: inherit; font-size: 26px; font-weight: 800; cursor: pointer; }
     .composition-keypad button:focus-visible { outline: 3px solid #bcd9f8; outline-offset: 2px; }
     .composition-feedback { text-align: center; min-height: 52px; margin: 0; padding: 14px 0; line-height: 1.6; }
     .composition-study { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 18px; }

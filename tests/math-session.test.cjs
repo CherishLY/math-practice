@@ -231,3 +231,33 @@ test('ending an empty composition session does not save history', () => {
   assert.equal(s.storage.get('mathCompositionHistory.v1'), original);
   assert.equal(s.run('compositionRecords.length'), 1);
 });
+
+test('composition tracks each session duration, excludes time in other tabs, and saves it', () => {
+  const s = createSession();
+  assert.equal(s.get('compositionTime').textContent, '00:00');
+  s.run("switchExercise('composition');beginComposition()");
+  s.advance(12000);
+  s.run('updateCompositionTime();submitComposition(9)');
+  assert.equal(s.get('compositionTime').textContent, '00:12');
+  s.run("switchExercise('comparison')");
+  s.advance(60000);
+  s.run('updateCompositionTime()');
+  assert.equal(s.get('compositionTime').textContent, '00:12');
+  s.run("switchExercise('composition')");
+  s.advance(5000);
+  s.run('finishComposition()');
+  assert.equal(s.get('compositionTime').textContent, '00:17');
+  assert.equal(s.run('compositionRecords[0].elapsed'), '00:17');
+  assert.equal(s.run('compositionRecords[0].elapsedMilliseconds'), 17000);
+  assert.equal(JSON.parse(s.storage.get('mathCompositionHistory.v1'))[0].elapsed, '00:17');
+  s.advance(5000);
+  s.run('updateCompositionTime()');
+  assert.equal(s.get('compositionTime').textContent, '00:17');
+  const history = s.storage.get('mathCompositionHistory.v1');
+  s.run('beginComposition(compositionRetryQuestions)');
+  assert.equal(s.get('compositionTime').textContent, '00:00');
+  s.advance(4000);
+  s.run('submitComposition(composition.queue[0].blank===0?composition.queue[0].left:composition.queue[0].right)');
+  assert.equal(s.get('compositionTime').textContent, '00:04');
+  assert.equal(s.storage.get('mathCompositionHistory.v1'), history);
+});

@@ -1,4 +1,4 @@
-const composition = { selection: 0, queue: [], index: 0, running: false, answered: false, attempts: [], right: 0, wrong: 0, next: null, retry: false };
+const composition = { selection: 0, queue: [], index: 0, running: false, answered: false, attempts: [], right: 0, wrong: 0, next: null, retry: false, startedAt: 0, pausedAt: null, elapsedMilliseconds: 0, timer: null };
 const compositionElement = id => document.getElementById(id);
 const compositionStorageKey = "mathCompositionHistory.v1";
 let compositionRecords = [];
@@ -21,6 +21,20 @@ function compositionStats() {
   compositionElement("compositionWrong").textContent = composition.wrong;
   compositionElement("compositionProgress").textContent = `${composition.attempts.length}/${composition.queue.length}`;
 }
+function updateCompositionTime() {
+  if (composition.running) composition.elapsedMilliseconds = Math.max(0, (composition.pausedAt === null ? Date.now() : composition.pausedAt) - composition.startedAt);
+  compositionElement("compositionTime").textContent = formatTime(composition.elapsedMilliseconds);
+}
+function syncCompositionTiming() {
+  if (!composition.running) return;
+  if (activePage !== "composition" && composition.pausedAt === null) {
+    composition.pausedAt = Date.now();
+  } else if (activePage === "composition" && composition.pausedAt !== null) {
+    composition.startedAt += Date.now() - composition.pausedAt;
+    composition.pausedAt = null;
+  }
+  updateCompositionTime();
+}
 function renderCompositionQuestion() {
   clearTimeout(composition.next);
   const q = composition.queue[composition.index];
@@ -38,18 +52,23 @@ function renderCompositionQuestion() {
 }
 function prepareComposition() {
   clearTimeout(composition.next);
+  clearInterval(composition.timer);
+  composition.startedAt = 0; composition.pausedAt = null; composition.elapsedMilliseconds = 0;
   composition.running = false; composition.retry = false; composition.attempts = []; composition.index = 0; composition.right = 0; composition.wrong = 0;
   composition.queue = shuffleComposition(compositionQuestions(composition.selection));
   compositionElement("compositionStart").disabled = false;
   compositionElement("compositionFinish").disabled = true;
   compositionElement("compositionRetry").disabled = compositionRetryQuestions.length === 0;
-  compositionStats(); renderCompositionQuestion();
+  compositionStats(); updateCompositionTime(); renderCompositionQuestion();
 }
 function beginComposition(questions = null) {
   const selected = questions ? questions.map(q => ({ total: q.total, left: q.left, right: q.right, blank: q.blank })) : null;
   prepareComposition();
   if (selected) { composition.queue = shuffleComposition(selected); composition.retry = true; }
   composition.running = true;
+  composition.startedAt = Date.now();
+  syncCompositionTiming();
+  composition.timer = setInterval(updateCompositionTime, 250);
   compositionElement("compositionStart").disabled = true;
   compositionElement("compositionFinish").disabled = false;
   compositionElement("compositionRetry").disabled = true;
@@ -72,6 +91,8 @@ function submitComposition(selected) {
 }
 function finishComposition() {
   if (!composition.running) return;
+  updateCompositionTime();
+  clearInterval(composition.timer);
   clearTimeout(composition.next); composition.running = false;
   compositionRetryQuestions = composition.attempts.filter(attempt => !attempt.correct);
   compositionElement("compositionRetry").disabled = compositionRetryQuestions.length === 0;
@@ -79,9 +100,10 @@ function finishComposition() {
   compositionElement("compositionStart").disabled = false;
   compositionElement("compositionKeypad").querySelectorAll("button").forEach(button => button.disabled = true);
   compositionElement("compositionSession").textContent = "练习结束";
-  compositionElement("compositionFeedback").textContent = `本次完成${composition.attempts.length}题，答对${composition.right}题，答错${composition.wrong}题。`;
+  const elapsed = formatTime(composition.elapsedMilliseconds);
+  compositionElement("compositionFeedback").textContent = `本次完成${composition.attempts.length}题，答对${composition.right}题，答错${composition.wrong}题，总用时${elapsed}。`;
   if (!composition.retry && composition.attempts.length > 0) {
-    compositionRecords.unshift({ selection: composition.selection, label: composition.selection ? `${composition.selection}的组成` : "1–9混合", date: new Date().toLocaleString("zh-CN"), right: composition.right, wrong: composition.wrong, attempts: composition.attempts.slice() });
+    compositionRecords.unshift({ selection: composition.selection, label: composition.selection ? `${composition.selection}的组成` : "1–9混合", date: new Date().toLocaleString("zh-CN"), right: composition.right, wrong: composition.wrong, elapsed, elapsedMilliseconds: composition.elapsedMilliseconds, attempts: composition.attempts.slice() });
     compositionRecords = compositionRecords.slice(0, 10);
     try { localStorage.setItem(compositionStorageKey, JSON.stringify(compositionRecords)); } catch { compositionElement("compositionFeedback").textContent += " 本次成绩无法保存到本地。"; }
     renderCompositionHistory();
@@ -92,7 +114,7 @@ function renderCompositionHistory() {
   if (!compositionRecords.length) list.textContent = "暂无成绩";
   compositionRecords.forEach(record => {
     const row = document.createElement("div"); row.className = "composition-record";
-    const summary = document.createElement("span"); summary.textContent = `${record.label} · ${record.date} · 对${record.right}题 / 错${record.wrong}题`;
+    const summary = document.createElement("span"); summary.textContent = `${record.label} · ${record.date} · 对${record.right}题 / 错${record.wrong}题 · ${record.elapsed ? `用时${record.elapsed}` : "旧记录未记录用时"}`;
     const button = document.createElement("button"); button.type = "button"; button.className = "action secondary";
     const wrong = record.attempts.filter(q => !q.correct);
     button.textContent = wrong.length ? `重做错题（${wrong.length}题）` : "全部答对"; button.disabled = !wrong.length;

@@ -11,6 +11,7 @@ function switchExercise(page) {
     updateCountdown();
   }
   activePage = page;
+  syncCompositionTiming();
   document.querySelector("#arithmeticStats").hidden = page !== "arithmetic";
   document.querySelector("#summaryBar").classList.toggle("stars-only", page !== "arithmetic");
   syncArithmeticPause();
