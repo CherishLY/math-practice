@@ -237,7 +237,7 @@ test('composition tracks each session duration, excludes time in other tabs, and
   assert.equal(s.get('compositionTime').textContent, '00:00');
   s.run("switchExercise('composition');beginComposition()");
   s.advance(12000);
-  s.run('updateCompositionTime();submitComposition(9)');
+  s.run('updateCompositionTime();submitComposition((composition.queue[0].blank===0?composition.queue[0].left:composition.queue[0].right)===0?1:0)');
   assert.equal(s.get('compositionTime').textContent, '00:12');
   s.run("switchExercise('comparison')");
   s.advance(60000);
@@ -260,4 +260,41 @@ test('composition tracks each session duration, excludes time in other tabs, and
   s.run('submitComposition(composition.queue[0].blank===0?composition.queue[0].left:composition.queue[0].right)');
   assert.equal(s.get('compositionTime').textContent, '00:04');
   assert.equal(s.storage.get('mathCompositionHistory.v1'), history);
+});
+
+test('composition includes all 65 ordered pairs for 1–10 and all 11 pairs for 10', () => {
+  const s = createSession();
+  assert.equal(s.run('compositionQuestions(0).length'), 65);
+  const pairs = JSON.parse(s.run('JSON.stringify(compositionQuestions(10))'));
+  assert.equal(pairs.length, 11);
+  assert.equal(new Set(pairs.map(q => `${q.left},${q.right}`)).size, 11);
+  for (let left = 0; left <= 10; left++) {
+    assert.ok(pairs.some(q => q.total === 10 && q.left === left && q.right === 10 - left));
+  }
+  assert.equal(s.get('compositionNumbers').children.length, 11);
+  assert.equal(s.get('compositionChart').children.length, 10);
+  assert.equal(s.get('compositionKeypad').children.length, 10);
+});
+
+test('composition uses digit-by-digit checking for answer 10 and completes a full session', () => {
+  const s = createSession();
+  s.run("switchExercise('composition');beginComposition([{total:10,left:10,right:0,blank:0}]);appendCompositionDigit('1')");
+  assert.equal(s.run('composition.attempts.length'), 0);
+  assert.equal(s.get('compositionLeft').textContent, '1');
+  s.run("appendCompositionDigit('0')");
+  assert.equal(s.run('composition.right'), 1);
+  assert.equal(s.run('composition.running'), false);
+  s.run("beginComposition([{total:10,left:0,right:10,blank:1}]);appendCompositionDigit('2')");
+  assert.equal(s.run('composition.wrong'), 1);
+  s.run("beginComposition([{total:10,left:0,right:10,blank:1}]);appendCompositionDigit('1');appendCompositionDigit('1')");
+  assert.equal(s.run('composition.wrong'), 1);
+  s.run('composition.selection=10;beginComposition()');
+  for (let i = 0; i < 11; i++) {
+    s.run('for (const digit of String(composition.queue[composition.index].blank===0?composition.queue[composition.index].left:composition.queue[composition.index].right)) appendCompositionDigit(digit)');
+    if (i < 10) s.flushNext();
+  }
+  assert.equal(s.run('composition.running'), false);
+  assert.equal(s.run('composition.right'), 11);
+  assert.equal(s.run('compositionRecords[0].attempts.length'), 11);
+  assert.equal(s.get('compositionProgress').textContent, '11/11');
 });
