@@ -1,16 +1,27 @@
 const compositionMaxNumber = 10;
-const composition = { selection: 0, queue: [], index: 0, running: false, answered: false, typedAnswer: "", attempts: [], right: 0, wrong: 0, next: null, retry: false, startedAt: 0, pausedAt: null, elapsedMilliseconds: 0, timer: null };
+const composition = { selection: 0, kind: "mixed", queue: [], index: 0, running: false, answered: false, typedAnswer: "", attempts: [], right: 0, wrong: 0, next: null, retry: false, startedAt: 0, pausedAt: null, elapsedMilliseconds: 0, timer: null };
+const compositionKindLabels = { mixed: "分与合混合", split: "练分", combine: "练合" };
 const compositionElement = id => document.getElementById(id);
 const compositionStorageKey = "mathCompositionHistory.v1";
 let compositionRecords = [];
 let compositionRetryQuestions = [];
 try { const saved = JSON.parse(localStorage.getItem(compositionStorageKey)); if (Array.isArray(saved)) compositionRecords = saved.filter(record => record && Array.isArray(record.attempts)).slice(0, 10); } catch { /* Keep current practice available without storage. */ }
-function compositionQuestions(number) {
+function compositionQuestions(number, kind = composition.kind) {
   const questions = [];
+  const offset = randomInt(0, 1);
   for (let total = number || 1; total <= (number || compositionMaxNumber); total++) {
-    for (let left = 0; left <= total; left++) questions.push({ total, left, right: total - left, blank: randomInt(0, 1) });
+    for (let left = 0; left <= total; left++) {
+      const combine = kind === "combine" || (kind === "mixed" && (questions.length + offset) % 2 === 0);
+      questions.push({ total, left, right: total - left, blank: combine ? 2 : randomInt(0, 1) });
+    }
   }
   return questions;
+}
+function compositionAnswer(question) {
+  return question.blank === 2 ? question.total : question.blank === 0 ? question.left : question.right;
+}
+function compositionAnswerElement(question) {
+  return compositionElement(question.blank === 2 ? "compositionTotal" : question.blank === 0 ? "compositionLeft" : "compositionRightPart");
 }
 function shuffleComposition(items) {
   const result = items.slice();
@@ -42,14 +53,17 @@ function renderCompositionQuestion() {
   if (!q) return;
   composition.answered = false;
   composition.typedAnswer = "";
-  compositionElement("compositionTotal").textContent = q.total;
+  const total = compositionElement("compositionTotal");
+  total.textContent = q.blank === 2 ? "" : q.total;
+  total.className = `composition-total composition-part${q.blank === 2 ? " missing" : ""}`;
+  compositionElement("compositionPrompt").textContent = q.blank === 2 ? "合起来是多少？" : "可以分成几和几？";
   ["compositionLeft", "compositionRightPart"].forEach((id, i) => {
     const part = compositionElement(id);
-    part.textContent = q.blank === i ? "□" : i === 0 ? q.left : q.right;
+    part.textContent = q.blank === i ? "" : i === 0 ? q.left : q.right;
     part.className = `composition-part${q.blank === i ? " missing" : ""}`;
   });
   compositionElement("compositionFeedback").textContent = "";
-  compositionElement("compositionSession").textContent = composition.running ? `${composition.retry ? "错题重做" : composition.selection ? `${composition.selection}的组成` : `1–${compositionMaxNumber}混合`} · 第${composition.index + 1}题` : "准备开始";
+  compositionElement("compositionSession").textContent = composition.running ? `${composition.retry ? "错题重做" : composition.selection ? `${composition.selection}的组成` : `1–${compositionMaxNumber}`} · ${compositionKindLabels[composition.kind]} · 第${composition.index + 1}题` : "准备开始";
   compositionElement("compositionKeypad").querySelectorAll("button").forEach(button => button.disabled = !composition.running);
 }
 function prepareComposition() {
@@ -78,13 +92,13 @@ function beginComposition(questions = null) {
 }
 function submitComposition(selected) {
   if (activePage !== "composition" || !composition.running || composition.answered || !Number.isSafeInteger(selected) || selected < 0) return;
-  const q = composition.queue[composition.index], answer = q.blank === 0 ? q.left : q.right;
+  const q = composition.queue[composition.index], answer = compositionAnswer(q);
   const correct = selected === answer;
   composition.answered = true; composition[correct ? "right" : "wrong"]++;
   if (correct) rewardCorrectAnswer();
   composition.attempts.push({ ...q, selected, correct });
-  const part = compositionElement(q.blank === 0 ? "compositionLeft" : "compositionRightPart");
-  part.textContent = selected; part.className = `composition-part ${correct ? "good" : "bad"}`;
+  const part = compositionAnswerElement(q);
+  part.textContent = selected; part.className = `${q.blank === 2 ? "composition-total " : ""}composition-part ${correct ? "good" : "bad"}`;
   compositionElement("compositionFeedback").textContent = `${correct ? "答对了！" : "再记一记："}${q.total}由${q.left}和${q.right}组成，${q.left} + ${q.right} = ${q.total}。`;
   compositionElement("compositionKeypad").querySelectorAll("button").forEach(button => button.disabled = true);
   compositionStats();
@@ -94,9 +108,9 @@ function submitComposition(selected) {
 function appendCompositionDigit(digit) {
   if (activePage !== "composition" || !composition.running || composition.answered || !/^\d$/.test(digit)) return;
   const q = composition.queue[composition.index];
-  const expected = String(q.blank === 0 ? q.left : q.right);
+  const expected = String(compositionAnswer(q));
   composition.typedAnswer += digit;
-  compositionElement(q.blank === 0 ? "compositionLeft" : "compositionRightPart").textContent = composition.typedAnswer;
+  compositionAnswerElement(q).textContent = composition.typedAnswer;
   if (!expected.startsWith(composition.typedAnswer) || composition.typedAnswer.length === expected.length) submitComposition(Number(composition.typedAnswer));
 }
 function finishComposition() {
@@ -113,7 +127,7 @@ function finishComposition() {
   const elapsed = formatTime(composition.elapsedMilliseconds);
   compositionElement("compositionFeedback").textContent = `本次完成${composition.attempts.length}题，答对${composition.right}题，答错${composition.wrong}题，总用时${elapsed}。`;
   if (!composition.retry && composition.attempts.length > 0) {
-    compositionRecords.unshift({ selection: composition.selection, label: composition.selection ? `${composition.selection}的组成` : `1–${compositionMaxNumber}混合`, date: new Date().toLocaleString("zh-CN"), right: composition.right, wrong: composition.wrong, elapsed, elapsedMilliseconds: composition.elapsedMilliseconds, attempts: composition.attempts.slice() });
+    compositionRecords.unshift({ selection: composition.selection, kind: composition.kind, label: `${composition.selection ? `${composition.selection}的组成` : `1–${compositionMaxNumber}`} · ${compositionKindLabels[composition.kind]}`, date: new Date().toLocaleString("zh-CN"), right: composition.right, wrong: composition.wrong, elapsed, elapsedMilliseconds: composition.elapsedMilliseconds, attempts: composition.attempts.slice() });
     compositionRecords = compositionRecords.slice(0, 10);
     try { localStorage.setItem(compositionStorageKey, JSON.stringify(compositionRecords)); } catch { compositionElement("compositionFeedback").textContent += " 本次成绩无法保存到本地。"; }
     renderCompositionHistory();
@@ -130,6 +144,8 @@ function renderCompositionHistory() {
     button.textContent = wrong.length ? `重做错题（${wrong.length}题）` : "全部答对"; button.disabled = !wrong.length;
     button.addEventListener("click", () => {
       composition.selection = Number.isInteger(record.selection) ? record.selection : 0;
+      composition.kind = Object.hasOwn(compositionKindLabels, record.kind) ? record.kind : "mixed";
+      document.querySelectorAll("[data-composition-kind]").forEach(item => { const selected = item.dataset.compositionKind === composition.kind; item.classList.toggle("active", selected); item.setAttribute("aria-pressed", String(selected)); });
       compositionElement("compositionNumbers").querySelectorAll("button").forEach((item, index) => { const active = index === composition.selection; item.classList.toggle("active", active); item.setAttribute("aria-pressed", String(active)); });
       beginComposition(wrong);
     }); row.append(summary, button); list.appendChild(row);
@@ -150,6 +166,13 @@ for (let number = 1; number <= compositionMaxNumber; number++) {
   section.append(heading, body); compositionElement("compositionChart").appendChild(section);
 }
 compositionElement("compositionStart").addEventListener("click", () => beginComposition());
+document.querySelectorAll("[data-composition-kind]").forEach(button => {
+  button.addEventListener("click", () => {
+    composition.kind = button.dataset.compositionKind;
+    document.querySelectorAll("[data-composition-kind]").forEach(item => { item.classList.toggle("active", item === button); item.setAttribute("aria-pressed", String(item === button)); });
+    prepareComposition();
+  });
+});
 compositionElement("compositionFinish").addEventListener("click", finishComposition);
 compositionElement("compositionRetry").addEventListener("click", () => { if (compositionRetryQuestions.length) beginComposition(compositionRetryQuestions); });
 document.addEventListener("keydown", event => {

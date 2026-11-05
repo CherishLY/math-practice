@@ -88,7 +88,7 @@
         <div class="formula">
           <span id="formulaPrefix"></span>
           <span class="answer-control">
-            <input class="answer-slot empty" id="answerSlot" type="text" inputmode="none" maxlength="2" autocomplete="off" aria-label="方框中的答案" placeholder="□" readonly>
+            <input class="answer-slot empty" id="answerSlot" type="text" inputmode="none" maxlength="2" autocomplete="off" aria-label="方框中的答案" readonly>
           </span>
           <span id="formulaText">8 + 5 =</span>
         </div>
@@ -177,10 +177,16 @@
       <h1>数的组成</h1>
       <p class="composition-note">1–10的分与合，包含0；交换两个数的位置也分别练习。</p>
       <div class="composition-numbers" id="compositionNumbers" role="group" aria-label="选择组成的数"></div>
+      <div class="composition-kinds" role="group" aria-label="分与合题型">
+        <button class="mode-button active" type="button" data-composition-kind="mixed" aria-pressed="true">分与合混合</button>
+        <button class="mode-button" type="button" data-composition-kind="split" aria-pressed="false">练分</button>
+        <button class="mode-button" type="button" data-composition-kind="combine" aria-pressed="false">练合</button>
+      </div>
       <div class="composition-stats"><span id="compositionSession">准备开始</span><span>答对 <strong id="compositionRight">0</strong></span><span>答错 <strong id="compositionWrong">0</strong></span><span>进度 <strong id="compositionProgress">0/65</strong></span><span>用时 <strong id="compositionTime">00:00</strong></span></div>
-      <div class="composition-problem" aria-label="数的分解题目">
-        <p class="composition-total" id="compositionTotal">4</p><p class="composition-branches" aria-hidden="true">／ ＼</p>
-        <div class="composition-parts"><span id="compositionLeft" class="composition-part missing">□</span><span>和</span><span id="compositionRightPart" class="composition-part">3</span></div>
+      <div class="composition-problem" aria-label="数的分与合题目">
+        <p class="composition-prompt" id="compositionPrompt">可以分成几和几？</p>
+        <p class="composition-total composition-part" id="compositionTotal">4</p><p class="composition-branches" aria-hidden="true">／ ＼</p>
+        <div class="composition-parts"><span id="compositionLeft" class="composition-part missing"></span><span>和</span><span id="compositionRightPart" class="composition-part">3</span></div>
       </div>
       <div class="composition-keypad" id="compositionKeypad" aria-label="选择组成部分"></div>
       <p class="composition-feedback" id="compositionFeedback" role="status"></p>

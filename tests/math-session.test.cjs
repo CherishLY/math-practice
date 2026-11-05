@@ -142,7 +142,7 @@ test('composition review does not consume a history slot', () => {
   const s = createSession();
   s.run("switchExercise('composition');composition.selection=1;beginComposition();submitComposition(9);finishComposition()");
   const original = s.storage.get('mathCompositionHistory.v1');
-  s.run('beginComposition(compositionRetryQuestions);submitComposition(composition.queue[0].blank===0?composition.queue[0].left:composition.queue[0].right)');
+  s.run('beginComposition(compositionRetryQuestions);submitComposition(compositionAnswer(composition.queue[0]))');
   assert.equal(s.run('composition.running'), false);
   assert.equal(s.run('composition.right'), 1);
   assert.equal(s.run('compositionRecords.length'), 1);
@@ -237,7 +237,7 @@ test('composition tracks each session duration, excludes time in other tabs, and
   assert.equal(s.get('compositionTime').textContent, '00:00');
   s.run("switchExercise('composition');beginComposition()");
   s.advance(12000);
-  s.run('updateCompositionTime();submitComposition((composition.queue[0].blank===0?composition.queue[0].left:composition.queue[0].right)===0?1:0)');
+  s.run('updateCompositionTime();submitComposition(compositionAnswer(composition.queue[0])===0?1:0)');
   assert.equal(s.get('compositionTime').textContent, '00:12');
   s.run("switchExercise('comparison')");
   s.advance(60000);
@@ -257,7 +257,7 @@ test('composition tracks each session duration, excludes time in other tabs, and
   s.run('beginComposition(compositionRetryQuestions)');
   assert.equal(s.get('compositionTime').textContent, '00:00');
   s.advance(4000);
-  s.run('submitComposition(composition.queue[0].blank===0?composition.queue[0].left:composition.queue[0].right)');
+  s.run('submitComposition(compositionAnswer(composition.queue[0]))');
   assert.equal(s.get('compositionTime').textContent, '00:04');
   assert.equal(s.storage.get('mathCompositionHistory.v1'), history);
 });
@@ -290,11 +290,44 @@ test('composition uses digit-by-digit checking for answer 10 and completes a ful
   assert.equal(s.run('composition.wrong'), 1);
   s.run('composition.selection=10;beginComposition()');
   for (let i = 0; i < 11; i++) {
-    s.run('for (const digit of String(composition.queue[composition.index].blank===0?composition.queue[composition.index].left:composition.queue[composition.index].right)) appendCompositionDigit(digit)');
+    s.run('for (const digit of String(compositionAnswer(composition.queue[composition.index]))) appendCompositionDigit(digit)');
     if (i < 10) s.flushNext();
   }
   assert.equal(s.run('composition.running'), false);
   assert.equal(s.run('composition.right'), 11);
   assert.equal(s.run('compositionRecords[0].attempts.length'), 11);
   assert.equal(s.get('compositionProgress').textContent, '11/11');
+});
+
+test('split, combine, and mixed composition modes retain every pair and the intended blank', () => {
+  const s = createSession();
+  for (const kind of ['split', 'combine', 'mixed']) {
+    const questions = JSON.parse(s.run(`JSON.stringify(compositionQuestions(0, '${kind}'))`));
+    assert.equal(questions.length, 65);
+    assert.equal(new Set(questions.map(q => `${q.total},${q.left},${q.right}`)).size, 65);
+    if (kind === 'split') assert.ok(questions.every(q => q.blank < 2));
+    if (kind === 'combine') assert.ok(questions.every(q => q.blank === 2));
+    if (kind === 'mixed') assert.ok([32, 33].includes(questions.filter(q => q.blank === 2).length));
+  }
+});
+
+test('combine questions accept a two-digit total and preserve the blank on retry', () => {
+  const s = createSession();
+  s.run("switchExercise('composition');beginComposition([{total:10,left:4,right:6,blank:2}])");
+  assert.equal(s.get('compositionTotal').textContent, '');
+  assert.equal(s.get('compositionLeft').textContent, 4);
+  assert.equal(s.get('compositionRightPart').textContent, 6);
+  s.run("appendCompositionDigit('1')");
+  assert.equal(s.run('composition.attempts.length'), 0);
+  assert.equal(s.get('compositionTotal').textContent, '1');
+  s.run("appendCompositionDigit('0')");
+  assert.equal(s.run('composition.right'), 1);
+  assert.equal(s.get('compositionTotal').textContent, 10);
+  s.run("beginComposition([{total:5,left:2,right:3,blank:2}]);appendCompositionDigit('4')");
+  assert.equal(s.run('composition.wrong'), 1);
+  s.run('beginComposition(compositionRetryQuestions)');
+  assert.equal(s.run('composition.queue[0].blank'), 2);
+  assert.equal(s.get('compositionTotal').textContent, '');
+  s.run("appendCompositionDigit('5')");
+  assert.equal(s.run('composition.right'), 1);
 });
